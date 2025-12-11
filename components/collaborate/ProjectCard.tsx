@@ -4,6 +4,8 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import { useUser } from '@clerk/nextjs'
 import { getImageUrl } from '@/lib/sanity/client'
+import { toast } from 'sonner'
+import { FaPaperPlane, FaClock, FaUsers, FaBriefcase } from 'react-icons/fa6'
 import { Badge } from '@/components/retroui/Badge'
 import { Card } from '@/components/retroui/Card'
 import { Button } from '@/components/retroui/Button'
@@ -33,7 +35,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
   const handleApply = async () => {
     if (!user) {
-      alert('Please sign in to apply')
+      toast.error('Please sign in to apply')
       return
     }
 
@@ -54,10 +56,10 @@ export function ProjectCard({ project }: ProjectCardProps) {
       if (!res.ok) throw new Error('Failed to apply')
 
       setHasApplied(true)
-      alert('Application sent successfully! 🚀')
+      toast.success('Application sent successfully! 🚀')
     } catch (error) {
       console.error(error)
-      alert('Something went wrong. Please try again.')
+      toast.error('Something went wrong. Please try again.')
     } finally {
       setIsApplying(false)
     }
@@ -70,7 +72,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <div className="flex items-start justify-between mb-4">
           <Badge className="bg-primary text-primary-foreground">OPEN</Badge>
           <div className="flex items-center gap-1 text-xs font-bold bg-muted px-2 py-1 rounded">
-            <span>👥</span>
+            <span><FaUsers /></span>
             <span>{project.applicantCount} Applicants</span>
           </div>
         </div>
@@ -106,11 +108,11 @@ export function ProjectCard({ project }: ProjectCardProps) {
         {/* Details grid */}
         <div className="grid grid-cols-2 gap-4 py-4 border-t-2 border-black/10 mb-4">
           <div>
-            <p className="text-xs text-muted-foreground">Duration</p>
+            <p className="text-xs text-muted-foreground flex items-center gap-1"><FaClock /> Duration</p>
             <p className="font-semibold text-sm">{project.duration || 'Flexible'}</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Commitment</p>
+            <p className="text-xs text-muted-foreground flex items-center gap-1"><FaBriefcase /> Commitment</p>
             <p className="font-semibold text-sm">{project.commitment || 'Part-time'}</p>
           </div>
         </div>
@@ -138,9 +140,9 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <Button
           onClick={handleApply}
           disabled={isApplying || hasApplied}
-          className="w-full border-brutal shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full border-brutal shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {isApplying ? 'Applying...' : hasApplied ? 'Applied ✅' : 'Apply to Join →'}
+          {isApplying ? 'Applying...' : hasApplied ? 'Applied ✅' : <><FaPaperPlane /> Apply to Join →</>}
         </Button>
       </div>
     </Card>

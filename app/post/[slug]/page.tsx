@@ -9,6 +9,7 @@ import { SparkButton } from '@/components/post/SparkButton'
 import { ShareButton } from '@/components/post/ShareButton'
 import { Comments } from '@/components/post/Comments'
 import { CommentButton } from '@/components/post/CommentButton'
+import { EditAction } from '@/components/post/EditAction'
 import { Badge } from '@/components/retroui/Badge'
 import { Button } from '@/components/retroui/Button'
 
@@ -76,6 +77,7 @@ export default async function PostPage({
 
               {/* Stats */}
               <div className="flex items-center gap-4">
+                <EditAction authorClerkId={post.author.clerkId} slug={post.slug.current} />
                 <span className="flex items-center gap-1">
                   ⚡ {post.sparkCount}
                 </span>

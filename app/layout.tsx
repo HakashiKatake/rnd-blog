@@ -1,6 +1,7 @@
 import { ClerkProvider } from '@clerk/nextjs'
 import type { Metadata } from "next";
 import { Poppins, Inter, JetBrains_Mono } from "next/font/google";
+import { Toaster } from 'sonner';
 import "./globals.css";
 
 const poppins = Poppins({
@@ -42,6 +43,7 @@ export default function RootLayout({
           className={`${poppins.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased`}
         >
           {children}
+          <Toaster richColors closeButton />
         </body>
       </html>
     </ClerkProvider>

@@ -1,7 +1,7 @@
 import { getOrCreateUser } from '@/lib/auth/user'
 import { redirect } from 'next/navigation'
 import { Navigation } from '@/components/layout/Navigation'
-import { CreatePostForm } from '@/components/create/CreatePostForm'
+import { PostForm } from '@/components/create/CreatePostForm'
 
 export default async function CreatePage() {
   const user = await getOrCreateUser()
@@ -27,7 +27,7 @@ export default async function CreatePage() {
           </div>
 
           {/* Form */}
-          <CreatePostForm userId={user._id} />
+          <PostForm userId={user._id} />
         </div>
       </main>
     </>

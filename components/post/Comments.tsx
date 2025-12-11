@@ -5,6 +5,8 @@ import Image from 'next/image'
 import { formatDistanceToNow } from 'date-fns'
 import { useUser } from '@clerk/nextjs'
 import { getImageUrl } from '@/lib/sanity/client'
+import { toast } from 'sonner'
+import { FaPaperPlane, FaCommentDots } from 'react-icons/fa6'
 import { Button } from '@/components/retroui/Button'
 import { Card } from '@/components/retroui/Card'
 
@@ -34,7 +36,7 @@ export function Comments({ postId, initialComments }: CommentsProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) {
-      alert('Please sign in to comment')
+      toast.error('Please sign in to comment')
       return
     }
     if (!newComment.trim()) return
@@ -65,7 +67,7 @@ export function Comments({ postId, initialComments }: CommentsProps) {
       setNewComment('')
     } catch (error) {
       console.error(error)
-      alert('Failed to post comment')
+      toast.error('Failed to post comment')
     } finally {
       setIsSubmitting(false)
     }
@@ -74,7 +76,7 @@ export function Comments({ postId, initialComments }: CommentsProps) {
   return (
     <div  id="comments-section" className="border-2 border-black bg-card p-6">
       <h3 className="font-head text-2xl font-bold mb-6 flex items-center gap-2">
-        💬 Comments <span className="text-muted-foreground text-sm font-normal">({comments.length})</span>
+        <FaCommentDots className="text-primary" /> Comments <span className="text-muted-foreground text-sm font-normal">({comments.length})</span>
       </h3>
 
       {/* Comment Form */}
@@ -90,9 +92,9 @@ export function Comments({ postId, initialComments }: CommentsProps) {
           <Button
             type="submit"
             disabled={!user || isSubmitting || !newComment.trim()}
-            className="font-bold border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)] bg-primary text-primary-foreground disabled:opacity-50"
+            className="font-bold border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)] bg-primary text-primary-foreground disabled:opacity-50 flex items-center gap-2"
           >
-            {isSubmitting ? 'Posting...' : 'Post Comment'}
+            {isSubmitting ? 'Posting...' : <><FaPaperPlane /> Post Comment</>}
           </Button>
         </div>
       </form>

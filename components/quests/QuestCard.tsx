@@ -5,6 +5,8 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { useUser } from '@clerk/nextjs'
 import { getImageUrl, urlFor } from '@/lib/sanity/client'
+import { toast } from 'sonner'
+import { FaRocket, FaClock, FaTrophy, FaUsers } from 'react-icons/fa6'
 import { Badge } from '@/components/retroui/Badge'
 import { Card } from '@/components/retroui/Card'
 import { Button } from '@/components/retroui/Button'
@@ -33,7 +35,7 @@ export function QuestCard({ quest }: QuestCardProps) {
 
   const handleJoin = async () => {
     if (!user) {
-      alert('Please sign in to join a quest')
+      toast.error('Please sign in to join a quest')
       return
     }
 
@@ -50,10 +52,10 @@ export function QuestCard({ quest }: QuestCardProps) {
       if (!res.ok) throw new Error('Failed to join quest')
 
       setHasJoined(true)
-      alert('You have joined the quest! 🚀')
+      toast.success('You have joined the quest! 🚀')
     } catch (error) {
       console.error(error)
-      alert('Something went wrong. Please try again.')
+      toast.error('Something went wrong. Please try again.')
     } finally {
       setIsJoining(false)
     }
@@ -98,16 +100,16 @@ export function QuestCard({ quest }: QuestCardProps) {
         {/* Stats */}
         <div className="flex items-center justify-between py-3 border-t-2 border-black mb-4">
           <div>
-            <p className="text-xs text-muted-foreground">Reward</p>
+            <p className="text-xs text-muted-foreground flex items-center gap-1"><FaTrophy /> Reward</p>
             <p className="font-bold text-primary">+{quest.rewardPoints} pts</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Participants</p>
+            <p className="text-xs text-muted-foreground flex items-center gap-1"><FaUsers /> Participants</p>
             <p className="font-bold">{quest.participantCount + (hasJoined ? 1 : 0)}</p>
           </div>
           {quest.daysRemaining && (
             <div>
-              <p className="text-xs text-muted-foreground">Time Left</p>
+              <p className="text-xs text-muted-foreground flex items-center gap-1"><FaClock /> Time Left</p>
               <p className="font-bold">{quest.daysRemaining}d</p>
             </div>
           )}
@@ -135,9 +137,9 @@ export function QuestCard({ quest }: QuestCardProps) {
         <Button
           onClick={handleJoin}
           disabled={isJoining || hasJoined || quest.status !== 'open'}
-          className="w-full bg-primary text-primary-foreground border-brutal shadow-brutal hover:shadow-brutal-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-primary text-primary-foreground border-brutal shadow-brutal hover:shadow-brutal-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {isJoining ? 'Joining...' : hasJoined ? 'Joined 🚀' : quest.status === 'open' ? 'Join Quest' : 'View Details'}
+          {isJoining ? 'Joining...' : hasJoined ? 'Joined 🚀' : quest.status === 'open' ? <><FaRocket /> Join Quest</> : 'View Details'}
         </Button>
       </div>
     </Card>

@@ -3,6 +3,9 @@ import { Navigation } from '@/components/layout/Navigation'
 import { PostCard } from '@/components/explore/PostCard'
 import { FilterBar } from '@/components/explore/FilterBar'
 
+// Force dynamic rendering to ensure searchParams work correctly
+export const dynamic = 'force-dynamic'
+
 export default async function ExplorePage({
   searchParams,
 }: {
@@ -15,7 +18,8 @@ export default async function ExplorePage({
   let query = `*[_type == "post" && status == "approved"]`
 
   if (tag) {
-    query += ` && $tag in tags`
+    // Check if tags exists and contains the tag
+    query += ` && defined(tags) && $tag in tags`
   }
 
   if (search) {
@@ -35,7 +39,11 @@ export default async function ExplorePage({
     "author": author->{name, avatar, tier}
   }`
 
-  const posts = await client.fetch(query, { tag, search: search ? `*${search}*` : '' })
+  // Fetch with fresh data (bypass CDN/Cache for search)
+  const posts = await client.fetch(query, 
+    { tag, search: search ? `*${search}*` : '' },
+    { cache: 'no-store', next: { revalidate: 0 } }
+  )
 
   return (
     <>

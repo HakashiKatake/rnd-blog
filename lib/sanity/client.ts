@@ -45,6 +45,8 @@ export const queries = {
     tags,
     sparkCount,
     viewCount,
+    viewCount,
+    isEdited,
     publishedAt,
     "author": author->{name, avatar, tier}
   }`,
@@ -61,7 +63,7 @@ export const queries = {
     sparkCount,
     viewCount,
     publishedAt,
-    "author": author->{_id, name, avatar, tier, bio},
+    "author": author->{_id, name, avatar, tier, bio, clerkId},
     "comments": comments[] | order(createdAt desc) {
       _key,
       text,

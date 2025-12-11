@@ -1,0 +1,61 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { client } from '@/lib/sanity/client'
+import { currentUser } from '@clerk/nextjs/server'
+
+export async function PUT(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const { id } = await params
+        const clerkUser = await currentUser()
+
+        if (!clerkUser) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const body = await request.json()
+        const { title, excerpt, content, tags } = body
+
+        // Fetch the post to check ownership
+        const post = await client.fetch(`*[_type == "post" && _id == $id][0] { author->{ clerkId } }`, { id })
+
+        if (!post) {
+            return NextResponse.json({ error: 'Post not found' }, { status: 404 })
+        }
+
+        // Check if the current user is the author
+        // Note: This relies on the author having a clerkId field or being able to map.
+        // Ideally we check if post.author.clerkId === clerkUser.id
+
+        if (post.author?.clerkId !== clerkUser.id) {
+            // Only allow if they match
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        }
+
+        // Update post in Sanity
+        const updatedPost = await client
+            .patch(id)
+            .set({
+                title,
+                excerpt,
+                content,
+                tags: tags || [],
+                isEdited: true,
+                // We don't update slug to preserve SEO and links, usually
+                // But if title changes drastically, maybe? Let's keep slug stable for now.
+            })
+            .commit()
+
+        return NextResponse.json({
+            message: 'Post updated successfully',
+            post: updatedPost,
+        })
+    } catch (error) {
+        console.error('Error updating post:', error)
+        return NextResponse.json(
+            { error: 'Failed to update post' },
+            { status: 500 }
+        )
+    }
+}

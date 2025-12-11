@@ -1,8 +1,9 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/retroui/Button'
+import { FaMagnifyingGlass } from 'react-icons/fa6'
 import { Input } from '@/components/retroui/Input'
 
 const TAGS = [
@@ -26,6 +27,11 @@ export function FilterBar({
   const router = useRouter()
   const searchParams = useSearchParams()
   const [search, setSearch] = useState(currentSearch || '')
+
+  // Sync state with URL params when they change (e.g. back button)
+  useEffect(() => {
+    setSearch(currentSearch || '')
+  }, [currentSearch])
 
   const handleTagClick = (tag: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -63,9 +69,9 @@ export function FilterBar({
             />
             <Button
               type="submit"
-              className="bg-primary text-primary-foreground border-brutal shadow-brutal hover:shadow-brutal-sm"
+              className="bg-primary text-primary-foreground border-brutal shadow-brutal hover:shadow-brutal-sm flex items-center gap-2"
             >
-              Search
+              <FaMagnifyingGlass /> Search
             </Button>
           </div>
         </form>

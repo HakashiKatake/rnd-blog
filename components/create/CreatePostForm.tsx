@@ -7,7 +7,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { tomorrow } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { Button } from '@/components/retroui/Button'
 import { Input } from '@/components/retroui/Input'
-import { Badge } from '@/components/retroui/Badge'
+import { toast } from 'sonner' // Using sonner for notifications
 
 const TAGS = [
   'ai-ml',
@@ -19,28 +19,36 @@ const TAGS = [
   'cloud',
 ]
 
-export function CreatePostForm({ userId }: { userId: string }) {
+interface PostFormProps {
+  userId: string
+  initialData?: {
+    title: string
+    excerpt: string
+    content: string
+    tags: string[]
+  }
+  postId?: string // If present, it's an edit
+}
+
+export function PostForm({ userId, initialData, postId }: PostFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
-
-  // DEBUG: Log when component mounts
-  useEffect(() => {
-    console.log('🚀 CreatePostForm mounted! UserId:', userId)
-    console.log('🔧 JavaScript is working!')
-  }, [userId])
+  
+  const isEditing = !!postId
 
   const [formData, setFormData] = useState({
-    title: '',
-    excerpt: '',
-    content: '',
-    tags: [] as string[],
+    title: initialData?.title || '',
+    excerpt: initialData?.excerpt || '',
+    content: initialData?.content || '',
+    tags: initialData?.tags || [],
   })
 
+  // Initialize char counts based on initialData
   const [charCounts, setCharCounts] = useState({
-    title: 0,
-    excerpt: 0,
-    content: 0,
+    title: initialData?.title?.length || 0,
+    excerpt: initialData?.excerpt?.length || 0,
+    content: initialData?.content?.length || 0,
   })
 
   const handleChange = (
@@ -65,30 +73,25 @@ export function CreatePostForm({ userId }: { userId: string }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    console.log('Form submitted!', {
-      title: formData.title,
-      contentLength: formData.content.length,
-      userId,
-    })
-    
     // Validation
     if (!formData.title || formData.title.length < 10) {
-      alert('Title must be at least 10 characters')
+      toast.error('Title must be at least 10 characters')
       return
     }
     
     if (!formData.content || formData.content.length < 200) {
-      alert(`Content must be at least 200 characters. Current: ${formData.content.length}`)
+      toast.error(`Content must be at least 200 characters. Current: ${formData.content.length}`)
       return
     }
     
     setIsSubmitting(true)
 
     try {
-      console.log('Sending POST request to /api/posts...')
-      
-      const response = await fetch('/api/posts', {
-        method: 'POST',
+      const url = isEditing ? `/api/posts/${postId}` : '/api/posts'
+      const method = isEditing ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
@@ -96,20 +99,36 @@ export function CreatePostForm({ userId }: { userId: string }) {
         }),
       })
 
-      console.log('Response status:', response.status)
-      
       if (response.ok) {
-        const { slug } = await response.json()
-        console.log('Post created successfully! Slug:', slug)
-        router.push(`/post/${slug}`)
+        const data = await response.json()
+        toast.success(isEditing ? 'Post updated successfully!' : 'Post created successfully!')
+        
+        // If editing, we might want to go back to the post, or if creating, to the new slug
+        // API should return the slug (or we know it if editing and it didn't change, but safer to use response)
+        // For update, the API I wrote returns `post` object which has slug.
+        
+        // Wait a moment for toast
+        setTimeout(() => {
+           // For edit, reusing existing slug if not returned, usually safe unless we change slug logic
+           // Ideally API returns slug in both cases.
+           // My create API returns { slug }. My update API returns { post: { ... } } (check this).
+           // Let's assume slug might not change on edit.
+           
+           if (isEditing) {
+               router.push(`/post/${data.post?.slug?.current || 'explore'}`) // Fallback if slug missing
+               router.refresh()
+           } else {
+               router.push(`/post/${data.slug}`)
+           }
+        }, 1000)
+        
       } else {
         const errorData = await response.json()
-        console.error('Error response:', errorData)
-        alert(`Failed to create post: ${errorData.error || 'Unknown error'}`)
+        toast.error(`Failed to ${isEditing ? 'update' : 'create'} post: ${errorData.error || 'Unknown error'}`)
       }
     } catch (error) {
-      console.error('Error creating post:', error)
-      alert(`An error occurred: ${error}`)
+      console.error(error)
+      toast.error('An error occurred. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -120,7 +139,7 @@ export function CreatePostForm({ userId }: { userId: string }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Editor */}
         <div className="space-y-6">
-          <h2 className="font-head text-2xl font-bold">Write</h2>
+          <h2 className="font-head text-2xl font-bold">{isEditing ? 'Edit Post' : 'Write'}</h2>
 
           {/* Title */}
           <div>
@@ -192,8 +211,8 @@ export function CreatePostForm({ userId }: { userId: string }) {
             <div className="flex flex-wrap gap-2">
               {TAGS.map((tag) => (
                 <button
-                  key={tag}
                   type="button"
+                  key={tag}
                   onClick={() => toggleTag(tag)}
                   className={`px-3 py-1 border-2 border-black text-sm font-semibold transition-all ${
                     formData.tags.includes(tag)
@@ -217,23 +236,14 @@ export function CreatePostForm({ userId }: { userId: string }) {
                 !formData.content ||
                 formData.content.length < 200
               }
-              onClick={() => {
-                console.log('🔘 Submit button clicked!')
-                console.log('📝 Form data:', {
-                  titleLength: formData.title.length,
-                  contentLength: formData.content.length,
-                  tagsCount: formData.tags.length,
-                })
-                console.log('✅ Button enabled:', !isSubmitting && formData.title && formData.content && formData.content.length >= 200)
-              }}
               className="bg-primary text-primary-foreground border-brutal shadow-brutal hover:shadow-brutal-sm"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit for Review'}
+              {isSubmitting ? (isEditing ? 'Updating...' : 'Submitting...') : (isEditing ? 'Update Post' : 'Submit for Review')}
             </Button>
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push('/explore')}
+              onClick={() => router.back()}
               className="border-brutal"
             >
               Cancel

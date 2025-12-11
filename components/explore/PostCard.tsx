@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { getImageUrl, urlFor } from '@/lib/sanity/client'
 import { Badge } from '@/components/retroui/Badge'
 import { Card } from '@/components/retroui/Card'
+import { FaBolt, FaEye } from 'react-icons/fa6'
 
 interface PostCardProps {
   post: {
@@ -17,6 +18,7 @@ interface PostCardProps {
     sparkCount: number
     viewCount: number
     publishedAt: string
+    isEdited?: boolean
     author: {
       name: string
       avatar?: any
@@ -78,37 +80,41 @@ export function PostCard({ post }: PostCardProps) {
           )}
 
           {/* Footer */}
-          <div className="flex items-center justify-between text-sm">
-            {/* Author */}
-            <div className="flex items-center gap-2">
-              {post.author.avatar && getImageUrl(post.author.avatar) && (
-                <Image
-                  src={getImageUrl(post.author.avatar)!}
-                  alt={post.author.name}
-                  width={32}
-                  height={32}
-                  className="rounded-full border border-black"
-                />
-              )}
-              <div>
-                <p className="text-sm font-semibold">{post.author.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  Tier {post.author.tier} {tierEmojis[post.author.tier]}
-                </p>
+            {/* Author and Stats */}
+            <div className="flex items-center justify-between mt-auto">
+              {/* Author */}
+              <div className="flex items-center gap-2">
+                {post.author.avatar && getImageUrl(post.author.avatar) && (
+                  <Image
+                    src={getImageUrl(post.author.avatar)!}
+                    alt={post.author.name}
+                    width={32}
+                    height={32}
+                    className="rounded-full border border-black"
+                  />
+                )}
+                <div>
+                  <p className="text-sm font-semibold">{post.author.name}</p>
+                  <div className="flex items-center gap-2">
+                  <p className="text-xs text-muted-foreground">
+                    Tier {post.author.tier}
+                  </p>
+                  {post.isEdited && <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground font-medium">(edited)</span>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="flex items-center gap-3 font-medium text-sm">
+                <span className="flex items-center gap-1 text-primary">
+                  <FaBolt /> {post.sparkCount || 0}
+                </span>
+                <span className="flex items-center gap-1">
+                  <FaEye /> {post.viewCount || 0}
+                </span>
               </div>
             </div>
-
-            {/* Stats */}
-            <div className="flex items-center gap-3 text-sm">
-              <span className="flex items-center gap-1">
-                ⚡ {post.sparkCount}
-              </span>
-              <span className="flex items-center gap-1 text-muted-foreground">
-                👁 {post.viewCount}
-              </span>
-            </div>
           </div>
-        </div>
       </Link>
     </Card>
   )

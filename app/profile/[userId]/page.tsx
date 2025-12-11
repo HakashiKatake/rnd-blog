@@ -1,4 +1,4 @@
-import { client, urlFor } from '@/lib/sanity/client'
+import { client, urlFor, getImageUrl } from '@/lib/sanity/client'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import { Navigation } from '@/components/layout/Navigation'
@@ -9,10 +9,12 @@ import { Button } from '@/components/retroui/Button'
 export default async function ProfilePage({
   params,
 }: {
-  params: { userId: string }
+  params: Promise<{ userId: string }>
 }) {
+  const { userId } = await params
+
   const user = await client.fetch(
-    `*[_type == "user" && _id == $userId][0] {
+    `*[_type == "user" && (_id == $userId || clerkId == $userId)][0] {
       _id,
       name,
       email,
@@ -30,7 +32,7 @@ export default async function ProfilePage({
       linkedinUrl,
       portfolioUrl
     }`,
-    { userId: params.userId }
+    { userId }
   )
 
   if (!user) {
@@ -51,7 +53,7 @@ export default async function ProfilePage({
       publishedAt,
       "author": author->{name, avatar, tier}
     }`,
-    { userId: params.userId }
+    { userId: user._id } // Use the actual Sanity ID from the fetched user
   )
 
   const tierNames = ['', 'Spark Initiate', 'Idea Igniter', 'Forge Master', 'RnD Fellow']
@@ -68,11 +70,15 @@ export default async function ProfilePage({
               {/* Avatar */}
               {user.avatar && (
                 <Image
-                  src={urlFor(user.avatar).width(120).height(120).url()}
+                  src={
+                    typeof user.avatar === 'string'
+                      ? user.avatar
+                      : getImageUrl(user.avatar) || ''
+                  }
                   alt={user.name}
                   width={120}
                   height={120}
-                  className="rounded-full border-4 border-black"
+                  className="rounded-full border-4 border-black object-cover"
                 />
               )}
 

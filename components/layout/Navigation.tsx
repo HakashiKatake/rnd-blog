@@ -2,11 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
+import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs'
 import { Button } from '@/components/retroui/Button'
+import { FaBolt, FaCompass, FaScroll, FaHandshake, FaTrophy, FaUser } from 'react-icons/fa6'
 
 export function Navigation() {
   const pathname = usePathname()
+  const { user } = useUser()
 
   const isActive = (path: string) => pathname === path
 
@@ -15,57 +17,66 @@ export function Navigation() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="font-head text-2xl font-bold">
-            SPARK <span className="text-primary">⚡</span>
+          <Link href="/" className="font-head text-2xl font-bold flex items-center gap-1">
+            SPARK <FaBolt className="text-primary text-xl" />
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
             <Link
               href="/explore"
-              className={`font-body transition-colors ${
+              className={`font-body transition-colors flex items-center gap-2 ${
                 isActive('/explore')
                   ? 'text-primary border-b-2 border-primary'
                   : 'text-foreground hover:text-primary'
               }`}
             >
-              Explore
+              <FaCompass /> Explore
             </Link>
             <Link
               href="/quests"
-              className={`font-body transition-colors ${
+              className={`font-body transition-colors flex items-center gap-2 ${
                 isActive('/quests')
                   ? 'text-primary border-b-2 border-primary'
                   : 'text-foreground hover:text-primary'
               }`}
             >
-              Quests
+              <FaScroll /> Quests
             </Link>
             <Link
               href="/collaborate"
-              className={`font-body transition-colors ${
+              className={`font-body transition-colors flex items-center gap-2 ${
                 isActive('/collaborate')
                   ? 'text-primary border-b-2 border-primary'
                   : 'text-foreground hover:text-primary'
               }`}
             >
-              Collaborate
+              <FaHandshake /> Collaborate
             </Link>
             <Link
               href="/leaderboard"
-              className={`font-body transition-colors ${
+              className={`font-body transition-colors flex items-center gap-2 ${
                 isActive('/leaderboard')
                   ? 'text-primary border-b-2 border-primary'
                   : 'text-foreground hover:text-primary'
               }`}
             >
-              Leaderboard
+              <FaTrophy /> Leaderboard
             </Link>
           </div>
 
           {/* Right Section */}
           <div className="flex items-center gap-4">
             <SignedIn>
+              {/* Profile Link (New) */}
+              {user && (
+                <Link href={`/profile/${user.id}`}>
+                   <Button size="sm" variant="ghost" className="hover:bg-primary/10">
+                     <FaUser />
+                   </Button>
+                </Link>
+              )}
+
               {/* Create Button */}
               <Link href="/create">
                 <Button
