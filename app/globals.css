@@ -1,26 +1,218 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* SPARK Color Palette - NeoBrutalism */
+  --color-spark-orange: #FF6B35;
+  --color-spark-orange-hover: #FF8C42;
+  --color-spark-navy: #1A2947;
+  --color-spark-teal: #00B4D8;
+  --color-spark-cream: #FFF8F3;
+  --color-spark-gray: #1E1E1E;
+  --color-spark-green: #06A77D;
+
+  /* Shadcn Base Colors - Customized */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  /* SPARK Typography */
+  --font-head: 'Poppins', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: var(--font-body);
+
+  /* NeoBrutalism Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius: 8px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  /* SPARK Light Mode - NeoBrutalism */
+  --background: #FFF8F3;
+  /* Cream */
+  --foreground: #1E1E1E;
+  /* Dark Gray */
+
+  --card: #FFFFFF;
+  --card-foreground: #1E1E1E;
+
+  --popover: #FFFFFF;
+  --popover-foreground: #1E1E1E;
+
+  --primary: #FF6B35;
+  /* Ignition Orange */
+  --primary-foreground: #FFFFFF;
+
+  --secondary: #1A2947;
+  /* Deep Navy */
+  --secondary-foreground: #FFFFFF;
+
+  --muted: #F5F5F5;
+  --muted-foreground: #6C757D;
+
+  --accent: #00B4D8;
+  /* Electric Teal */
+  --accent-foreground: #FFFFFF;
+
+  --destructive: #DC3545;
+
+  --border: #000000;
+  /* Black borders for neobrutal */
+  --input: #000000;
+  --ring: #FF6B35;
+
+  --success: #06A77D;
+
+  --radius: 8px;
+}
+
+.dark {
+  /* SPARK Dark Mode - NeoBrutalism */
+  --background: #0D1117;
+  /* Very Dark */
+  --foreground: #E6EDF3;
+  /* Light Text */
+
+  --card: #161B22;
+  --card-foreground: #E6EDF3;
+
+  --popover: #161B22;
+  --popover-foreground: #E6EDF3;
+
+  --primary: #FF6B35;
+  /* Same Orange */
+  --primary-foreground: #FFFFFF;
+
+  --secondary: #1A2947;
+  /* Navy stays */
+  --secondary-foreground: #FFFFFF;
+
+  --muted: #21262D;
+  --muted-foreground: #8B949E;
+
+  --accent: #00B4D8;
+  /* Same Teal */
+  --accent-foreground: #FFFFFF;
+
+  --destructive: #F85149;
+
+  --border: #30363D;
+  --input: #30363D;
+  --ring: #FF8C42;
+
+  --success: #3FB950;
+}
+
+@layer base {
+  * {
+    @apply outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-head font-bold;
+  }
+
+  code,
+  pre {
+    @apply font-mono;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* NeoBrutalism utilities are defined in tailwind.config.ts */
+
+
+/* Custom Animations for SPARK */
+@keyframes spark-burst {
+  0% {
+    transform: scale(0) translate(0, 0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1) translate(var(--x), var(--y));
+    opacity: 0;
+  }
+}
+
+.animate-spark-burst {
+  animation: spark-burst 400ms ease-out forwards;
+}
+
+/* Prose Styling for Markdown */
+.prose-brutal {
+  @apply text-foreground;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.prose-brutal a {
+  @apply text-primary hover:underline;
+}
+
+.prose-brutal strong {
+  @apply font-bold text-foreground;
+}
+
+.prose-brutal em {
+  @apply italic;
+}
+
+.prose-brutal ul,
+.prose-brutal ol {
+  @apply my-4 pl-6;
+}
+
+.prose-brutal li {
+  @apply my-2;
+}
+
+.prose-brutal img {
+  @apply border-2 border-black my-6;
+}
+
+.prose-brutal hr {
+  @apply border-t-2 border-black my-8;
+}
+
+.prose-brutal table {
+  @apply border-2 border-black my-6 w-full;
+}
+
+.prose-brutal th {
+  @apply border-2 border-black bg-muted p-2 font-bold;
+}
+
+.prose-brutal td {
+  @apply border-2 border-black p-2;
 }

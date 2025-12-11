@@ -1,65 +1,159 @@
-import Image from "next/image";
+import { Button } from "@/components/retroui/Button";
+import { Card } from "@/components/retroui/Card";
+import { Badge } from "@/components/retroui/Badge";
+import { Navigation } from "@/components/layout/Navigation";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <>
+      <Navigation />
+      <main className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <section className="container mx-auto px-4 py-16 lg:py-24">
+        <div className="text-center max-w-4xl mx-auto">
+          {/* New Badge */}
+          <Badge className="mb-6 inline-block bg-accent text-accent-foreground">
+            Beta Launch • Join the RnD Revolution ⚡
+          </Badge>
+
+          {/* Main Heading */}
+          <h1 className="font-head text-5xl lg:text-7xl font-bold mb-6">
+            Ignite Ideas.{" "}
+            <span className="text-outlined text-primary">Build Together.</span>{" "}
+            Prove Your Work.
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+
+          {/* Description */}
+          <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            The ONLY platform combining peer-curated research, authentic
+            storytelling, verifiable portfolios, and collaborative
+            community—built for Gen Z engineers.
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button
+              className="bg-primary text-primary-foreground border-brutal shadow-brutal hover:shadow-brutal-sm active:shadow-none transition-all"
+              size="lg"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              Start Building ⚡
+            </Button>
+            <Button
+              variant="outline"
+              className="border-brutal shadow-brutal hover:shadow-brutal-sm active:shadow-none transition-all"
+              size="lg"
             >
-              Learning
-            </a>{" "}
-            center.
+              Explore Projects
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Grid - Bento Style */}
+      <section className="container mx-auto px-4 py-16">
+        <h2 className="font-head text-3xl lg:text-5xl font-bold text-center mb-12">
+          Why <span className="text-primary">SPARK</span>?
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Feature 1 - Large Card */}
+          <Card className="md:col-span-2 border-brutal p-8 hover:shadow-brutal transition-all">
+            <div className="flex items-start gap-4">
+              <div className="text-4xl">🎯</div>
+              <div>
+                <h3 className="font-head text-2xl font-bold mb-3">
+                  Peer-Curated Research
+                </h3>
+                <p className="text-muted-foreground">
+                  Three-tier moderation system ensures quality. Automated
+                  vetting, RnD club review, and community voting—all 100%
+                  transparent.
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Feature 2 */}
+          <Card className="border-brutal p-8 hover:shadow-brutal transition-all">
+            <div className="text-4xl mb-4">🚀</div>
+            <h3 className="font-head text-2xl font-bold mb-3">
+              Quest System
+            </h3>
+            <p className="text-muted-foreground">
+              "What If..." quests turn ideas into collaborative projects.
+              Build with peers, earn points, grow together.
+            </p>
+          </Card>
+
+          {/* Feature 3 */}
+          <Card className="border-brutal p-8 hover:shadow-brutal transition-all">
+            <div className="text-4xl mb-4">🏆</div>
+            <h3 className="font-head text-2xl font-bold mb-3">
+              Gamification
+            </h3>
+            <p className="text-muted-foreground">
+              4-tier progression system. Earn points, unlock badges, export
+              your portfolio PDF—proof that recruiters can't ignore.
+            </p>
+          </Card>
+
+          {/* Feature 4 - Wide Card */}
+          <Card className="md:col-span-2 border-brutal p-8 bg-primary/5 hover:shadow-brutal transition-all">
+            <div className="flex items-start gap-4">
+              <div className="text-4xl">💼</div>
+              <div>
+                <h3 className="font-head text-2xl font-bold mb-3">
+                  Portfolio Export
+                </h3>
+                <p className="text-muted-foreground">
+                  One-click PDF with your top projects, skills, and verified
+                  RnD Club badge. Attach to job applications. Stand out from
+                  the crowd.
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="border-brutal-thick bg-secondary text-secondary-foreground p-12 text-center">
+          <h2 className="font-head text-4xl font-bold mb-8">
+            Join the Movement
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <div className="text-outlined text-4xl lg:text-6xl font-head mb-2">
+                500+
+              </div>
+              <p className="text-lg">Engineering Students</p>
+            </div>
+            <div>
+              <div className="text-outlined text-4xl lg:text-6xl font-head mb-2">
+                200+
+              </div>
+              <p className="text-lg">Research Posts</p>
+            </div>
+            <div>
+              <div className="text-outlined text-4xl lg:text-6xl font-head mb-2">
+                50+
+              </div>
+              <p className="text-lg">Collaborative Quests</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t-4 border-black py-8 mt-16">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-muted-foreground">
+            Built by ITM RnD Club • For Engineering Students
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </footer>
+    </main>
+    </>
   );
 }
