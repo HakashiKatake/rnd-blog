@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json()
-        const { title, excerpt, content, tags, userId } = body
+        const { title, excerpt, content, tags, userId, coverImageUrl } = body
 
         // Create post in Sanity
         const post = await client.create({
@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
             title,
             excerpt,
             content,
+            coverImageUrl,
             tags: tags || [],
             slug: {
                 _type: 'slug',

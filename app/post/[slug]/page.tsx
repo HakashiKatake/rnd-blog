@@ -1,6 +1,7 @@
 import { client, queries, getImageUrl, urlFor } from '@/lib/sanity/client'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
+import { FaBolt, FaEye } from 'react-icons/fa6'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { tomorrow } from 'react-syntax-highlighter/dist/cjs/styles/prism'
@@ -78,25 +79,33 @@ export default async function PostPage({
               {/* Stats */}
               <div className="flex items-center gap-4">
                 <EditAction authorClerkId={post.author.clerkId} slug={post.slug.current} />
-                <span className="flex items-center gap-1">
-                  ⚡ {post.sparkCount}
+                <span className="flex items-center gap-1 font-medium text-primary">
+                  <FaBolt /> {post.sparkCount}
                 </span>
-                <span className="flex items-center gap-1 text-muted-foreground">
-                  👁 {post.viewCount}
+                <span className="flex items-center gap-1 text-muted-foreground font-medium">
+                  <FaEye /> {post.viewCount}
                 </span>
               </div>
             </div>
 
             {/* Featured Image */}
-            {post.thumbnail && (
+            {(post.coverImageUrl || post.thumbnail) && (
               <div className="my-8 border-brutal overflow-hidden">
-                <Image
-                  src={urlFor(post.thumbnail).width(800).height(450).url()}
-                  alt={post.title}
-                  width={800}
-                  height={450}
-                  className="w-full h-auto"
-                />
+                {post.coverImageUrl ? (
+                    <img
+                        src={post.coverImageUrl}
+                        alt={post.title}
+                        className="w-full h-auto"
+                    />
+                ) : (
+                    <Image
+                        src={urlFor(post.thumbnail).width(800).height(450).url()}
+                        alt={post.title}
+                        width={800}
+                        height={450}
+                        className="w-full h-auto"
+                    />
+                )}
               </div>
             )}
 

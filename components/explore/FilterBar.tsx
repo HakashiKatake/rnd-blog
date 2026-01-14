@@ -104,7 +104,7 @@ export function FilterBar({
             )}
             {currentSearch && (
               <span className="bg-accent/20 border-2 border-black px-3 py-1">
-                Search: "{currentSearch}"
+                Search: &quot;{currentSearch}&quot;
               </span>
             )}
             <button
