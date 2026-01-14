@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { Image as ImageIcon, Loader2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { tomorrow } from 'react-syntax-highlighter/dist/cjs/styles/prism'
@@ -34,7 +35,7 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
-  
+
   const isEditing = !!postId
 
   const [formData, setFormData] = useState({
@@ -50,6 +51,58 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
     excerpt: initialData?.excerpt?.length || 0,
     content: initialData?.content?.length || 0,
   })
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isUploading, setIsUploading] = useState(false)
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploading(true)
+    const uploadData = new FormData()
+    uploadData.append('file', file)
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadData,
+      })
+      const data = await res.json()
+
+      if (!res.ok) throw new Error(data.error || 'Upload failed')
+
+      const imageUrl = data.url
+      const imageMarkdown = `\n![Image](${imageUrl})\n`
+
+      // Insert at cursor
+      const textarea = textareaRef.current
+      if (textarea) {
+        const start = textarea.selectionStart
+        const end = textarea.selectionEnd
+        const text = formData.content
+        const newText = text.substring(0, start) + imageMarkdown + text.substring(end)
+
+        handleChange('content', newText)
+
+        // Restore cursor position after the inserted image
+        // setTimeout to ensure state update has processed
+        setTimeout(() => {
+          textarea.focus()
+          textarea.setSelectionRange(start + imageMarkdown.length, start + imageMarkdown.length)
+        }, 0)
+      }
+    } catch (err) {
+      toast.error('Image upload failed')
+      console.error(err)
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
 
   const handleChange = (
     field: string,
@@ -72,18 +125,18 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Validation
     if (!formData.title || formData.title.length < 10) {
       toast.error('Title must be at least 10 characters')
       return
     }
-    
+
     if (!formData.content || formData.content.length < 200) {
       toast.error(`Content must be at least 200 characters. Current: ${formData.content.length}`)
       return
     }
-    
+
     setIsSubmitting(true)
 
     try {
@@ -102,26 +155,26 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
       if (response.ok) {
         const data = await response.json()
         toast.success(isEditing ? 'Post updated successfully!' : 'Post created successfully!')
-        
+
         // If editing, we might want to go back to the post, or if creating, to the new slug
         // API should return the slug (or we know it if editing and it didn't change, but safer to use response)
         // For update, the API I wrote returns `post` object which has slug.
-        
+
         // Wait a moment for toast
         setTimeout(() => {
-           // For edit, reusing existing slug if not returned, usually safe unless we change slug logic
-           // Ideally API returns slug in both cases.
-           // My create API returns { slug }. My update API returns { post: { ... } } (check this).
-           // Let's assume slug might not change on edit.
-           
-           if (isEditing) {
-               router.push(`/post/${data.post?.slug?.current || 'explore'}`) // Fallback if slug missing
-               router.refresh()
-           } else {
-               router.push(`/post/${data.slug}`)
-           }
+          // For edit, reusing existing slug if not returned, usually safe unless we change slug logic
+          // Ideally API returns slug in both cases.
+          // My create API returns { slug }. My update API returns { post: { ... } } (check this).
+          // Let's assume slug might not change on edit.
+
+          if (isEditing) {
+            router.push(`/post/${data.post?.slug?.current || 'explore'}`) // Fallback if slug missing
+            router.refresh()
+          } else {
+            router.push(`/post/${data.slug}`)
+          }
         }, 1000)
-        
+
       } else {
         const errorData = await response.json()
         toast.error(`Failed to ${isEditing ? 'update' : 'create'} post: ${errorData.error || 'Unknown error'}`)
@@ -195,7 +248,30 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                 {showPreview ? 'Hide Preview' : 'Show Preview'}
               </button>
             </div>
+            <div className="flex items-center gap-2 mb-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageUpload}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded border border-border transition-colors"
+              >
+                {isUploading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <ImageIcon className="w-4 h-4" />
+                )}
+                {isUploading ? 'Uploading...' : 'Insert Image'}
+              </button>
+            </div>
             <textarea
+              ref={textareaRef}
               value={formData.content}
               onChange={(e) => handleChange('content', e.target.value)}
               placeholder="# Your Research Here\n\nExplain your project methodology, results, and key findings...\n\n```python\n# Include code snippets\nprint('Hello SPARK!')\n```"
@@ -214,11 +290,10 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                   type="button"
                   key={tag}
                   onClick={() => toggleTag(tag)}
-                  className={`px-3 py-1 border-2 border-black text-sm font-semibold transition-all ${
-                    formData.tags.includes(tag)
+                  className={`px-3 py-1 border-2 border-black text-sm font-semibold transition-all ${formData.tags.includes(tag)
                       ? 'bg-primary text-primary-foreground shadow-brutal'
                       : 'bg-background hover:shadow-brutal-sm'
-                  }`}
+                    }`}
                 >
                   {tag.toUpperCase().replace('-', '/')}
                 </button>
