@@ -32,7 +32,6 @@ export default async function ExplorePage({
     slug,
     excerpt,
     thumbnail,
-    coverImageUrl,
     tags,
     sparkCount,
     viewCount,
@@ -42,8 +41,8 @@ export default async function ExplorePage({
 
   // Fetch with fresh data (bypass CDN/Cache for search)
   const posts = await client.fetch(query, 
-    { tag: tag || null, search: search ? `*${search}*` : null },
-    { cache: 'no-store' }
+    { tag, search: search ? `*${search}*` : '' },
+    { cache: 'no-store', next: { revalidate: 0 } }
   )
 
   return (

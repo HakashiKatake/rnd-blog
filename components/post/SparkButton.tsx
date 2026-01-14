@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { Button } from '@/components/retroui/Button'
-import { FaBolt } from 'react-icons/fa6'
 
 export function SparkButton({
   postId,
@@ -62,11 +61,11 @@ export function SparkButton({
         disabled={isSparked}
         className={`border-brutal shadow-brutal hover:shadow-brutal-sm transition-all ${
           isSparked
-            ? 'bg-yellow-400 text-black cursor-not-allowed'
-            : 'bg-background hover:bg-yellow-100'
+            ? 'bg-primary text-primary-foreground cursor-not-allowed'
+            : 'bg-background hover:bg-primary/10'
         }`}
       >
-        <FaBolt className={`mr-2 h-5 w-5 ${isSparked ? 'fill-current' : 'text-yellow-500'}`} />
+        <span className="text-xl mr-2">⚡</span>
         <span className="font-bold">
           {isSparked ? 'Sparked!' : 'Spark'} ({sparkCount})
         </span>
@@ -78,7 +77,7 @@ export function SparkButton({
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className="absolute top-1/2 left-1/2 w-3 h-3 bg-yellow-500 rounded-full animate-spark-burst"
+              className="absolute top-1/2 left-1/2 w-3 h-3 bg-primary rounded-full animate-spark-burst"
               style={{
                 '--x': `${Math.cos((i * Math.PI) / 3) * 50}px`,
                 '--y': `${Math.sin((i * Math.PI) / 3) * 50}px`,

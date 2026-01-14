@@ -13,9 +13,7 @@ interface PostCardProps {
     title: string
     slug: { current: string }
     excerpt?: string
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     thumbnail?: any
-    coverImageUrl?: string
     tags?: string[]
     sparkCount: number
     viewCount: number
@@ -23,7 +21,6 @@ interface PostCardProps {
     isEdited?: boolean
     author: {
       name: string
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       avatar?: any
       tier: number
     }
@@ -43,7 +40,19 @@ export function PostCard({ post }: PostCardProps) {
   return (
     <Card className="border-brutal hover:shadow-brutal transition-all overflow-hidden group">
       <Link href={`/post/${post.slug.current}`}>
-        <div className="p-6 pb-0">
+        {/* Thumbnail */}
+        {post.thumbnail && (
+          <div className="relative w-full h-48 overflow-hidden border-b-2 border-black">
+            <Image
+              src={urlFor(post.thumbnail).width(400).height(300).url()}
+              alt={post.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          </div>
+        )}
+
+        <div className="p-6">
           {/* Tags */}
           {post.tags && post.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
@@ -59,34 +68,9 @@ export function PostCard({ post }: PostCardProps) {
           )}
 
           {/* Title */}
-          <h3 className="font-head text-xl font-bold mb-4 line-clamp-2 group-hover:text-primary transition-colors">
+          <h3 className="font-head text-xl font-bold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
             {post.title}
           </h3>
-        </div>
-
-        {/* Thumbnail or Cover Image */}
-        {(post.coverImageUrl || post.thumbnail) && (
-          <div className="relative w-full h-48 overflow-hidden border-y-2 border-black">
-            {post.coverImageUrl ? (
-               <div className="relative w-full h-full">
-                  <img
-                    src={post.coverImageUrl}
-                    alt={post.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-               </div>
-            ) : (
-                <Image
-                  src={urlFor(post.thumbnail).width(400).height(300).url()}
-                  alt={post.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-            )}
-          </div>
-        )}
-
-        <div className="p-6 pt-4">
 
           {/* Excerpt */}
           {post.excerpt && (

@@ -15,7 +15,7 @@ export async function PUT(
         }
 
         const body = await request.json()
-        const { title, excerpt, content, tags, coverImageUrl } = body
+        const { title, excerpt, content, tags } = body
 
         // Fetch the post to check ownership
         const post = await client.fetch(`*[_type == "post" && _id == $id][0] { author->{ clerkId } }`, { id })
@@ -40,7 +40,6 @@ export async function PUT(
                 title,
                 excerpt,
                 content,
-                coverImageUrl,
                 tags: tags || [],
                 isEdited: true,
                 // We don't update slug to preserve SEO and links, usually

@@ -1,4 +1,4 @@
-import { createClient } from 'next-sanity'
+import { createClient } from '@sanity/client'
 import imageUrlBuilder from '@sanity/image-url'
 
 export const client = createClient({
@@ -42,9 +42,9 @@ export const queries = {
     slug,
     excerpt,
     thumbnail,
-    coverImageUrl,
     tags,
     sparkCount,
+    viewCount,
     viewCount,
     isEdited,
     publishedAt,
@@ -59,7 +59,6 @@ export const queries = {
     content,
     excerpt,
     thumbnail,
-    coverImageUrl,
     tags,
     sparkCount,
     viewCount,

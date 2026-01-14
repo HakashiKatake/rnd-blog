@@ -43,16 +43,11 @@ export const postSchema = defineType({
         }),
         defineField({
             name: 'thumbnail',
-            title: 'Thumbnail Image (Sanity)',
+            title: 'Thumbnail Image',
             type: 'image',
             options: {
                 hotspot: true,
             },
-        }),
-        defineField({
-            name: 'coverImageUrl',
-            title: 'Cover Image URL (Cloudinary)',
-            type: 'url',
         }),
         defineField({
             name: 'tags',
