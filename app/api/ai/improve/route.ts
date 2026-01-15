@@ -31,7 +31,10 @@ export async function POST(req: NextRequest) {
     **OUTPUT FORMAT**:
     Return the **polished info-dense content first**.
     Then, append this exact separator: <<<SUGGESTIONS>>>
-    Then, list specific suggestions for the user to improve formatting.
+    Then, list specific, actionable suggestions for the user to improve formatting. 
+    - Use simple circular bullet points (•). 
+    - **Do NOT use markdown bolding (like **text**) in the suggestions.** 
+    - Keep the suggestions clean, simple, and easy to read.
     
     **CRITICAL RULES:**
     - Do NOT reformat the content yourself (do not add H1/H2 if they aren't there).
