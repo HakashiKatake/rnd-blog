@@ -8,6 +8,7 @@ import { tomorrow } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { Button } from '@/components/retroui/Button'
 import { Input } from '@/components/retroui/Input'
 import { toast } from 'sonner' // Using sonner for notifications
+import { Code } from 'lucide-react'
 
 const TAGS = [
   'ai-ml',
@@ -34,7 +35,7 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
-  
+
   const isEditing = !!postId
 
   const [formData, setFormData] = useState({
@@ -72,18 +73,18 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Validation
     if (!formData.title || formData.title.length < 10) {
       toast.error('Title must be at least 10 characters')
       return
     }
-    
+
     if (!formData.content || formData.content.length < 200) {
       toast.error(`Content must be at least 200 characters. Current: ${formData.content.length}`)
       return
     }
-    
+
     setIsSubmitting(true)
 
     try {
@@ -102,26 +103,26 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
       if (response.ok) {
         const data = await response.json()
         toast.success(isEditing ? 'Post updated successfully!' : 'Post created successfully!')
-        
+
         // If editing, we might want to go back to the post, or if creating, to the new slug
         // API should return the slug (or we know it if editing and it didn't change, but safer to use response)
         // For update, the API I wrote returns `post` object which has slug.
-        
+
         // Wait a moment for toast
         setTimeout(() => {
-           // For edit, reusing existing slug if not returned, usually safe unless we change slug logic
-           // Ideally API returns slug in both cases.
-           // My create API returns { slug }. My update API returns { post: { ... } } (check this).
-           // Let's assume slug might not change on edit.
-           
-           if (isEditing) {
-               router.push(`/post/${data.post?.slug?.current || 'explore'}`) // Fallback if slug missing
-               router.refresh()
-           } else {
-               router.push(`/post/${data.slug}`)
-           }
+          // For edit, reusing existing slug if not returned, usually safe unless we change slug logic
+          // Ideally API returns slug in both cases.
+          // My create API returns { slug }. My update API returns { post: { ... } } (check this).
+          // Let's assume slug might not change on edit.
+
+          if (isEditing) {
+            router.push(`/post/${data.post?.slug?.current || 'explore'}`) // Fallback if slug missing
+            router.refresh()
+          } else {
+            router.push(`/post/${data.slug}`)
+          }
         }, 1000)
-        
+
       } else {
         const errorData = await response.json()
         toast.error(`Failed to ${isEditing ? 'update' : 'create'} post: ${errorData.error || 'Unknown error'}`)
@@ -187,13 +188,60 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                   ({charCounts.content} chars, min 200)
                 </span>
               </label>
-              <button
-                type="button"
-                onClick={() => setShowPreview(!showPreview)}
-                className="text-primary hover:underline text-sm"
-              >
-                {showPreview ? 'Hide Preview' : 'Show Preview'}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const codeBlockTemplate = "\n```javascript\n// Your code here\n```\n";
+                    handleChange("content", formData.content + codeBlockTemplate);
+                    toast.success("Code block added!");
+                  }}
+                  className="text-primary hover:underline text-sm flex items-center gap-1"
+                >
+                  <Code className="w-4 h-4" /> Code Block
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!formData.content || formData.content.length < 50) {
+                      toast.error("Please write at least 50 characters before improving.");
+                      return;
+                    }
+
+                    // Set specific improving state if needed, or re-use isSubmitting but better to have separate
+                    const toastId = toast.loading("Improving with AI...");
+
+                    try {
+                      const res = await fetch("/api/ai/improve", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ content: formData.content }),
+                      });
+
+                      if (!res.ok) {
+                        const err = await res.json();
+                        throw new Error(err.error || "Failed to improve");
+                      }
+
+                      const data = await res.json();
+                      handleChange("content", data.content);
+                      toast.success("Content improved with AI!", { id: toastId });
+                    } catch (error: any) {
+                      toast.error(error.message, { id: toastId });
+                    }
+                  }}
+                  className="text-primary hover:underline text-sm flex items-center gap-1"
+                >
+                  ✨ Improve with AI
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPreview(!showPreview)}
+                  className="text-primary hover:underline text-sm"
+                >
+                  {showPreview ? 'Hide Preview' : 'Show Preview'}
+                </button>
+              </div>
             </div>
             <textarea
               value={formData.content}
@@ -214,11 +262,10 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                   type="button"
                   key={tag}
                   onClick={() => toggleTag(tag)}
-                  className={`px-3 py-1 border-2 border-black text-sm font-semibold transition-all ${
-                    formData.tags.includes(tag)
-                      ? 'bg-primary text-primary-foreground shadow-brutal'
-                      : 'bg-background hover:shadow-brutal-sm'
-                  }`}
+                  className={`px-3 py-1 border-2 border-black text-sm font-semibold transition-all ${formData.tags.includes(tag)
+                    ? 'bg-primary text-primary-foreground shadow-brutal'
+                    : 'bg-background hover:shadow-brutal-sm'
+                    }`}
                 >
                   {tag.toUpperCase().replace('-', '/')}
                 </button>
