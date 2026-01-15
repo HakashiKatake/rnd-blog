@@ -8,7 +8,7 @@ import { tomorrow } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { Button } from '@/components/retroui/Button'
 import { Input } from '@/components/retroui/Input'
 import { toast } from 'sonner' // Using sonner for notifications
-import { Code } from 'lucide-react'
+import { Code, Sparkles } from 'lucide-react'
 
 const TAGS = [
   'ai-ml',
@@ -71,7 +71,11 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
     }))
   }
 
+  const [aiSuggestions, setAiSuggestions] = useState<string | null>(null)
+  const [isImproving, setIsImproving] = useState(false)
+
   const handleSubmit = async (e: React.FormEvent) => {
+    // ... (unchanged)
     e.preventDefault()
 
     // Validation
@@ -104,19 +108,9 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
         const data = await response.json()
         toast.success(isEditing ? 'Post updated successfully!' : 'Post created successfully!')
 
-        // If editing, we might want to go back to the post, or if creating, to the new slug
-        // API should return the slug (or we know it if editing and it didn't change, but safer to use response)
-        // For update, the API I wrote returns `post` object which has slug.
-
-        // Wait a moment for toast
         setTimeout(() => {
-          // For edit, reusing existing slug if not returned, usually safe unless we change slug logic
-          // Ideally API returns slug in both cases.
-          // My create API returns { slug }. My update API returns { post: { ... } } (check this).
-          // Let's assume slug might not change on edit.
-
           if (isEditing) {
-            router.push(`/post/${data.post?.slug?.current || 'explore'}`) // Fallback if slug missing
+            router.push(`/post/${data.post?.slug?.current || 'explore'}`)
             router.refresh()
           } else {
             router.push(`/post/${data.slug}`)
@@ -134,6 +128,9 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
       setIsSubmitting(false)
     }
   }
+
+  // ... in return ...
+
 
   return (
     <form onSubmit={handleSubmit} className="max-w-6xl">
@@ -208,8 +205,8 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                       return;
                     }
 
-                    // Set specific improving state if needed, or re-use isSubmitting but better to have separate
-                    const toastId = toast.loading("Improving with AI...");
+                    setIsImproving(true);
+                    setAiSuggestions(null); // Clear previous suggestions
 
                     try {
                       const res = await fetch("/api/ai/improve", {
@@ -225,14 +222,23 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
 
                       const data = await res.json();
                       handleChange("content", data.content);
-                      toast.success("Content improved with AI!", { id: toastId });
+
+                      if (data.suggestions) {
+                        setAiSuggestions(data.suggestions);
+                        toast.success("Content improved! Check suggestions below.");
+                      } else {
+                        toast.success("Content improved!");
+                      }
+
                     } catch (error: any) {
-                      toast.error(error.message, { id: toastId });
+                      toast.error(error.message);
+                    } finally {
+                      setIsImproving(false);
                     }
                   }}
                   className="text-primary hover:underline text-sm flex items-center gap-1"
                 >
-                  ✨ Improve with AI
+                  {isImproving ? 'Improving...' : '✨ Improve with AI'}
                 </button>
                 <button
                   type="button"
@@ -243,14 +249,41 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                 </button>
               </div>
             </div>
-            <textarea
-              value={formData.content}
-              onChange={(e) => handleChange('content', e.target.value)}
-              placeholder="# Your Research Here\n\nExplain your project methodology, results, and key findings...\n\n```python\n# Include code snippets\nprint('Hello SPARK!')\n```"
-              rows={20}
-              required
-              className="w-full border-brutal p-4 font-mono text-sm focus:ring-primary"
-            />
+            {isImproving ? (
+              <div className="w-full border-brutal p-4 h-[400px]">
+                <div className="space-y-4">
+                  <div className="h-4 animate-shimmer w-3/4 rounded"></div>
+                  <div className="h-4 animate-shimmer w-full rounded"></div>
+                  <div className="h-4 animate-shimmer w-5/6 rounded"></div>
+                  <div className="h-4 animate-shimmer w-full rounded"></div>
+                  <br />
+                  <div className="h-32 animate-shimmer w-full rounded"></div>
+                  <br />
+                  <div className="h-4 animate-shimmer w-2/3 rounded"></div>
+                </div>
+              </div>
+            ) : (
+              <textarea
+                value={formData.content}
+                onChange={(e) => handleChange('content', e.target.value)}
+                placeholder="# Your Research Here\n\nExplain your project methodology, results, and key findings...\n\n```python\n# Include code snippets\nprint('Hello SPARK!')\n```"
+                rows={20}
+                required
+                className="w-full border-brutal p-4 font-mono text-sm focus:ring-primary"
+              />
+            )}
+
+            {aiSuggestions && !isImproving && (
+              <div className="mt-4 p-4 border-2 border-primary bg-primary/5 rounded-none shadow-brutal-sm">
+                <h3 className="font-bold flex items-center gap-2 mb-2 text-primary">
+                  <Sparkles className="w-4 h-4" />
+                  AI Suggestions for Improvement
+                </h3>
+                <div className="whitespace-pre-wrap text-sm text-foreground/80 font-mono">
+                  {aiSuggestions}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Tags */}

@@ -85,6 +85,10 @@
   --success: #06A77D;
 
   --radius: 8px;
+
+  /* Skeleton Colors */
+  --skeleton-base: rgba(0, 0, 0, 0.1);
+  --skeleton-highlight: rgba(0, 0, 0, 0.05);
 }
 
 .dark {
@@ -122,6 +126,10 @@
   --ring: #FF8C42;
 
   --success: #3FB950;
+
+  /* Skeleton Colors (Dark) */
+  --skeleton-base: rgba(255, 255, 255, 0.1);
+  --skeleton-highlight: rgba(255, 255, 255, 0.15);
 }
 
 @layer base {
@@ -213,6 +221,22 @@
   @apply border-2 border-black bg-muted p-2 font-bold;
 }
 
-.prose-brutal td {
-  @apply border-2 border-black p-2;
+/* Skeleton Shimmer Animation */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg,
+      var(--skeleton-base) 25%,
+      var(--skeleton-highlight) 37%,
+      var(--skeleton-base) 63%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
 }

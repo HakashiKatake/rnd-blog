@@ -20,13 +20,22 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const prompt = `You are an expert technical editor. Rewrite the following engineering research post content to be more professional, engaging, and clear. 
-    Maintain all technical details and code snippets accurately. 
-    Use proper Markdown formatting. 
-    Make it sound like a high-quality engineering blog post.
-    CRITICAL: If the content contains ANY code, programming logic, terminal commands, or technical syntax, you MUST strictly format them using Markdown code blocks (e.g., \`\`\`python ... \`\`\`). Do NOT leave code as plain text. Detect the language and specify it.
-    CRITICAL: Do NOT wrap the entire response in a code block (like \`\`\`markdown). Only wrap specific code snippets in code blocks.
-    Return the raw markdown text directly.
+        const prompt = `You are an expert technical editor and critique partner.
+    
+    Your task is to:
+    1. **Grammar & Polish**: Correct grammatical, spelling, and punctuation errors. 
+       - **IMPORTANT**: If the text contains informal language, slang, or mixed languages (e.g., Hinglish), **rewrite those specific parts into clear, professional English** while keeping the original meaning and sentence structure.
+       - Do not change the underlying code or technical logic.
+    2. **Structure Analysis**: Analyze the content formatting against an ideal blog structure.
+    
+    **OUTPUT FORMAT**:
+    Return the **polished info-dense content first**.
+    Then, append this exact separator: <<<SUGGESTIONS>>>
+    Then, list specific suggestions for the user to improve formatting.
+    
+    **CRITICAL RULES:**
+    - Do NOT reformat the content yourself (do not add H1/H2 if they aren't there).
+    - Do NOT include the suggestions in the first part.
     
     Content to improve:
     ${content}`;
@@ -45,24 +54,30 @@ export async function POST(req: NextRequest) {
             })
         });
 
-        // If the first model fails or isn't available, we could implement fallback, but let's check the response first.
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`OpenRouter API Error: ${response.status} - ${errorText}`);
         }
 
         const data = await response.json();
-        let improvedContent = data.choices[0].message.content;
+        let fullResponse = data.choices[0].message.content;
 
-        // Clean up if AI wrapped everything in a code block despite instructions
-        improvedContent = improvedContent.trim();
-        if (improvedContent.startsWith('```markdown')) {
-            improvedContent = improvedContent.replace(/^```markdown\s*/, '').replace(/```\s*$/, '');
-        } else if (improvedContent.startsWith('```')) {
-            improvedContent = improvedContent.replace(/^```\s*/, '').replace(/```\s*$/, '');
+        // Clean up markdown code blocks if present
+        if (fullResponse.startsWith('```markdown')) {
+            fullResponse = fullResponse.replace(/^```markdown\s*/, '').replace(/```\s*$/, '');
+        } else if (fullResponse.startsWith('```')) {
+            fullResponse = fullResponse.replace(/^```\s*/, '').replace(/```\s*$/, '');
         }
 
-        return NextResponse.json({ content: improvedContent });
+        // Split content and suggestions
+        const parts = fullResponse.split('<<<SUGGESTIONS>>>');
+        const improvedContent = parts[0].trim();
+        const suggestions = parts[1] ? parts[1].trim() : null;
+
+        return NextResponse.json({
+            content: improvedContent,
+            suggestions: suggestions
+        });
     } catch (error: any) {
         console.error('AI Improvement Error:', error);
         return NextResponse.json(
