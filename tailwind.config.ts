@@ -7,7 +7,23 @@ const config: Config = {
         "./app/**/*.{js,ts,jsx,tsx,mdx}",
     ],
     theme: {
-        extend: {},
+        extend: {
+            keyframes: {
+                'spark-burst': {
+                    '0%': { transform: 'scale(1)', opacity: '1' },
+                    '100%': { transform: 'scale(1.5)', opacity: '0' },
+                },
+                'spark-pulse': {
+                    '0%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 0 rgba(255,165,0,0))' },
+                    '50%': { transform: 'scale(1.5)', filter: 'drop-shadow(0 0 12px rgba(255,165,0,1))' },
+                    '100%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 0 rgba(255,165,0,0))' },
+                },
+            },
+            animation: {
+                'spark-burst': 'spark-burst 0.4s ease-out forwards',
+                'spark-pulse': 'spark-pulse 0.4s ease-in-out',
+            },
+        },
     },
     plugins: [
         // Custom neobrutal utilities

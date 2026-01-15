@@ -33,15 +33,15 @@ export default async function ExplorePage({
     excerpt,
     thumbnail,
     tags,
-    sparkCount,
+    "sparkCount": coalesce(sparkCount, 0),
     viewCount,
     publishedAt,
     "author": author->{name, avatar, tier}
   }`
 
   // Fetch with fresh data (bypass CDN/Cache for search)
-  const posts = await client.fetch(query, 
-    { tag, search: search ? `*${search}*` : '' },
+  const posts = await client.fetch(query,
+    { tag: tag || '', search: search ? `*${search}*` : '' },
     { cache: 'no-store', next: { revalidate: 0 } }
   )
 
