@@ -25,41 +25,37 @@ export function Navigation() {
           <div className="hidden md:flex items-center gap-6">
             <Link
               href="/explore"
-              className={`font-body transition-colors flex items-center gap-2 ${
-                isActive('/explore')
+              className={`font-body transition-colors flex items-center gap-2 ${isActive('/explore')
                   ? 'text-primary border-b-2 border-primary'
                   : 'text-foreground hover:text-primary'
-              }`}
+                }`}
             >
               <FaCompass /> Explore
             </Link>
             <Link
               href="/quests"
-              className={`font-body transition-colors flex items-center gap-2 ${
-                isActive('/quests')
+              className={`font-body transition-colors flex items-center gap-2 ${isActive('/quests')
                   ? 'text-primary border-b-2 border-primary'
                   : 'text-foreground hover:text-primary'
-              }`}
+                }`}
             >
               <FaScroll /> Quests
             </Link>
             <Link
               href="/collaborate"
-              className={`font-body transition-colors flex items-center gap-2 ${
-                isActive('/collaborate')
+              className={`font-body transition-colors flex items-center gap-2 ${isActive('/collaborate')
                   ? 'text-primary border-b-2 border-primary'
                   : 'text-foreground hover:text-primary'
-              }`}
+                }`}
             >
               <FaHandshake /> Collaborate
             </Link>
             <Link
               href="/leaderboard"
-              className={`font-body transition-colors flex items-center gap-2 ${
-                isActive('/leaderboard')
+              className={`font-body transition-colors flex items-center gap-2 ${isActive('/leaderboard')
                   ? 'text-primary border-b-2 border-primary'
                   : 'text-foreground hover:text-primary'
-              }`}
+                }`}
             >
               <FaTrophy /> Leaderboard
             </Link>
@@ -71,9 +67,9 @@ export function Navigation() {
               {/* Profile Link (New) */}
               {user && (
                 <Link href={`/profile/${user.id}`}>
-                   <Button size="sm" variant="ghost" className="hover:bg-primary/10">
-                     <FaUser />
-                   </Button>
+                  <Button size="sm" variant="ghost" className="hover:bg-primary/10">
+                    <FaUser />
+                  </Button>
                 </Link>
               )}
 
@@ -101,15 +97,6 @@ export function Navigation() {
 
             <SignedOut>
               <Link href="/sign-in">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-brutal hover:shadow-brutal-sm transition-all"
-                >
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/sign-up">
                 <Button
                   size="sm"
                   className="bg-primary text-primary-foreground border-brutal shadow-brutal hover:shadow-brutal-sm transition-all"
