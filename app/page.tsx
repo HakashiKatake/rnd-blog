@@ -1,10 +1,15 @@
-import Link from "next/link";
 import { Button } from "@/components/retroui/Button";
 import { Card } from "@/components/retroui/Card";
 import { Badge } from "@/components/retroui/Badge";
 import { Navigation } from "@/components/layout/Navigation";
+import Link from "next/link";
 
-export default function Home() {
+import { auth } from "@clerk/nextjs/server";
+
+export default async function Home() {
+  const { userId } = await auth();
+  const startBuildingHref = userId ? "/explore" : "/sign-up";
+
   return (
     <>
       <Navigation />
@@ -33,7 +38,7 @@ export default function Home() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/create">
+              <Link href={startBuildingHref}>
                 <Button
                   className="bg-primary text-primary-foreground border-brutal shadow-brutal hover:shadow-brutal-sm active:shadow-none transition-all"
                   size="lg"
@@ -51,6 +56,7 @@ export default function Home() {
                 </Button>
               </Link>
             </div>
+
           </div>
         </section>
 

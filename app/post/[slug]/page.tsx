@@ -12,6 +12,7 @@ import { CommentButton } from '@/components/post/CommentButton'
 import { EditAction } from '@/components/post/EditAction'
 import { Badge } from '@/components/retroui/Badge'
 import { Button } from '@/components/retroui/Button'
+import { DownloadPdfButton } from '@/components/post/DownloadPdfButton'
 
 export default async function PostPage({
   params,
@@ -170,6 +171,7 @@ export default async function PostPage({
               <SparkButton postId={post._id} initialSparkCount={post.sparkCount} />
               <CommentButton postId={post._id} />
               <ShareButton title={post.title} slug={slug} />
+              <DownloadPdfButton post={post} />
             </div>
           </div>
 

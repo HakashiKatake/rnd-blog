@@ -1,80 +1,48 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { currentUser } from '@clerk/nextjs/server'
-import crypto from 'crypto'
+import { NextRequest, NextResponse } from 'next/server';
+import { v2 as cloudinary } from 'cloudinary';
 
-const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME
-const API_KEY = process.env.CLOUDINARY_API_KEY
-const API_SECRET = process.env.CLOUDINARY_API_SECRET
+// Configure Cloudinary with env variables
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-export async function POST(request: NextRequest) {
+import { Readable } from 'stream';
+
+export async function POST(req: NextRequest) {
     try {
-        // 1. Verify User
-        const user = await currentUser()
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
 
-        // 2. Verify Config
-        if (!CLOUD_NAME || !API_KEY || !API_SECRET) {
-            console.error('Missing Cloudinary configuration')
-            return NextResponse.json(
-                { error: 'Server configuration error' },
-                { status: 500 }
-            )
-        }
 
-        // 3. Get File from FormData
-        const formData = await request.formData()
-        const file = formData.get('file') as File
+        // Get resource type from query param (video or image)
+        const { searchParams } = new URL(req.url);
+        const type = searchParams.get('type') || 'auto';
 
-        if (!file) {
-            return NextResponse.json({ error: 'No file provided' }, { status: 400 })
-        }
+        const arrayBuffer = await req.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
 
-        // 4. Prepare Cloudinary Upload
-        // We'll use signed upload
-        const timestamp = Math.round(new Date().getTime() / 1000)
+        // Upload using a Promise wrapper
+        const result = await new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                {
+                    resource_type: type as any,
+                    folder: 'rnd-blog',
+                },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            );
 
-        // Parameters to sign
-        const paramsToSign = `timestamp=${timestamp}${API_SECRET}`
+            uploadStream.end(buffer);
+        });
 
-        // Generate signature (SHA-1)
-        const signature = crypto
-            .createHash('sha1')
-            .update(paramsToSign)
-            .digest('hex')
-
-        const uploadFormData = new FormData()
-        uploadFormData.append('file', file)
-        uploadFormData.append('api_key', API_KEY)
-        uploadFormData.append('timestamp', timestamp.toString())
-        uploadFormData.append('signature', signature)
-
-        // 5. Upload to Cloudinary
-        const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`
-
-        const response = await fetch(cloudinaryUrl, {
-            method: 'POST',
-            body: uploadFormData,
-        })
-
-        const data = await response.json()
-
-        if (!response.ok) {
-            console.error('Cloudinary API error:', data)
-            return NextResponse.json({ error: data.error?.message || 'Upload failed' }, { status: response.status })
-        }
-
-        return NextResponse.json({
-            url: data.secure_url,
-            public_id: data.public_id
-        })
-
-    } catch (error) {
-        console.error('Upload handler error:', error)
+        return NextResponse.json(result);
+    } catch (error: any) {
+        console.error('Upload Error:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: error.message || 'Upload failed' },
             { status: 500 }
-        )
+        );
     }
 }
