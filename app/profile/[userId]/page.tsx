@@ -1,10 +1,9 @@
-import { client, urlFor, getImageUrl } from '@/lib/sanity/client'
+import { client, getImageUrl } from '@/lib/sanity/client'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { currentUser } from '@clerk/nextjs/server'
 import { Navigation } from '@/components/layout/Navigation'
-import { PostCard } from '@/components/explore/PostCard'
 import { Badge } from '@/components/retroui/Badge'
 import { Button } from '@/components/retroui/Button'
 import ProfileDownloadButton from '@/components/profile/ProfileDownloadButton'
@@ -31,11 +30,11 @@ export default async function ProfilePage({
     await getOrCreateUser()
   }
 
-
-
+  // 1. Fetch User
   const user = await client.fetch(
     `*[_type == "user" && (_id == $userId || clerkId == $userId)][0] {
       _id,
+      clerkId,
       name,
       email,
       avatar,
@@ -45,10 +44,7 @@ export default async function ProfilePage({
       university,
       location,
       tier,
-      points,
-      sparksReceived,
-      postsPublished,
-      collaborationsCount,
+      points, 
       badges,
       githubUrl,
       linkedinUrl,
@@ -62,23 +58,71 @@ export default async function ProfilePage({
     notFound()
   }
 
-  // Get user's posts
-  const posts = await client.fetch(
-    `*[_type == "post" && author._ref == $userId && status == "approved"] | order(publishedAt desc) {
-      _id,
-      title,
-      slug,
-      excerpt,
-      thumbnail,
-      coverImageUrl,
-      tags,
-      sparkCount,
-      viewCount,
-      publishedAt,
-      "author": author->{name, avatar, tier}
-    }`,
-    { userId: user._id }
-  )
+  const sanityUid = user._id
+
+
+  // 2. Fetch Content Parallelly
+  const [posts, joinedQuests, completedQuests, collaborations] = await Promise.all([
+    // Posts
+    client.fetch(
+      `*[_type == "post" && author._ref == $sanityUid && status == "approved"] | order(publishedAt desc) {
+        _id,
+        title,
+        slug,
+        excerpt,
+        thumbnail,
+        coverImageUrl,
+        tags,
+        sparkCount,
+        viewCount,
+        publishedAt,
+        "author": author->{name, avatar, tier}
+      }`,
+      { sanityUid }
+    ),
+    // Joined Quests (Active/Open)
+    client.fetch(
+      `*[_type == "quest" && $sanityUid in participants[]._ref && status != "completed"] {
+        _id,
+        title,
+        slug,
+        status,
+        rewardPoints
+      }`,
+      { sanityUid }
+    ),
+    // Completed Quests
+    client.fetch(
+      `*[_type == "quest" && $sanityUid in participants[]._ref && status == "completed"] {
+        _id,
+        title,
+        slug,
+        status,
+        rewardPoints
+      }`,
+      { sanityUid }
+    ),
+    // Collaborations (Team member or Applicant)
+    client.fetch(
+      `*[_type == "collaboration" && ($sanityUid in teamMembers[]._ref || $sanityUid in applicants[].user._ref)] {
+        _id,
+        projectName,
+        description,
+        status,
+        "postedBy": postedBy->{name}
+      }`,
+      { sanityUid }
+    )
+  ])
+
+  // 3. Compute Stats Live
+  const stats = {
+    totalPoints: user.points, // Keep as source of truth from User doc for now
+    postsPublished: posts.length,
+    sparksReceived: posts.reduce((sum: number, p: any) => sum + (p.sparkCount || 0), 0),
+    questsCompleted: completedQuests.length,
+    collaborationsJoined: collaborations.length
+  }
 
   // Fetch Collections
   const collections = await client.fetch(
@@ -140,9 +184,14 @@ export default async function ProfilePage({
                     <h1 className="font-head text-3xl font-bold mb-2">
                       {user.name}
                     </h1>
-                    <Badge className="bg-secondary text-secondary-foreground text-lg">
-                      Tier {user.tier}: {tierNames[user.tier]} {tierEmojis[user.tier]}
-                    </Badge>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <Badge className="bg-secondary text-secondary-foreground text-lg">
+                        Tier {user.tier}: {tierNames[user.tier]} {tierEmojis[user.tier]}
+                      </Badge>
+                      <Badge variant="outline" className="bg-muted/50">
+                        Verified by ITM RnD Club
+                      </Badge>
+                    </div>
                   </div>
                 </div>
 
@@ -191,17 +240,35 @@ export default async function ProfilePage({
                 {/* Social Links */}
                 <div className="flex gap-3">
                   {user.githubUrl && (
-                    <a href={user.githubUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                      GitHub →
-                    </a>
-                  )}
+                    {
+                      user.githubUrl && (
+                        <a
+                          href={user.githubUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline hover:text-primary/80 transition-colors"
+                        >
+                          GitHub →
+                        </a>
+                      )
+                    }
                   {user.linkedinUrl && (
-                    <a href={user.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    <a
+                      href={user.linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline hover:text-primary/80 transition-colors"
+                    >
                       LinkedIn →
                     </a>
                   )}
                   {user.portfolioUrl && (
-                    <a href={user.portfolioUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    <a
+                      href={user.portfolioUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline hover:text-primary/80 transition-colors"
+                    >
                       Portfolio →
                     </a>
                   )}
@@ -212,29 +279,59 @@ export default async function ProfilePage({
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="border-brutal p-6 bg-primary/5 text-center">
-              <p className="text-4xl font-head font-bold text-primary mb-2">{user.points}</p>
+            <div className="border-brutal p-6 bg-primary/5 text-center group hover:bg-primary/10 transition-colors cursor-default">
+              <p className="text-4xl font-head font-bold text-primary mb-2 group-hover:scale-110 transition-transform">
+                {stats.totalPoints}
+              </p>
               <p className="text-sm text-muted-foreground">Total Points</p>
             </div>
-            <div className="border-brutal p-6 bg-card text-center">
-              <p className="text-4xl font-head font-bold mb-2">{user.postsPublished}</p>
+            <div className="border-brutal p-6 bg-card text-center group hover:border-primary transition-colors cursor-default">
+              <p className="text-4xl font-head font-bold mb-2 group-hover:scale-110 transition-transform">
+                {stats.postsPublished}
+              </p>
               <p className="text-sm text-muted-foreground">Posts Published</p>
             </div>
-            <div className="border-brutal p-6 bg-card text-center">
-              <p className="text-4xl font-head font-bold mb-2">{user.sparksReceived}</p>
+            <div className="border-brutal p-6 bg-card text-center group hover:border-primary transition-colors cursor-default">
+              <p className="text-4xl font-head font-bold mb-2 group-hover:scale-110 transition-transform">
+                {stats.sparksReceived}
+              </p>
               <p className="text-sm text-muted-foreground">Sparks Received</p>
             </div>
-            <div className="border-brutal p-6 bg-card text-center">
-              <p className="text-4xl font-head font-bold mb-2">{user.collaborationsCount}</p>
+            <div className="border-brutal p-6 bg-card text-center group hover:border-primary transition-colors cursor-default">
+              <p className="text-4xl font-head font-bold mb-2 group-hover:scale-110 transition-transform">
+                {stats.collaborationsJoined}
+              </p>
               <p className="text-sm text-muted-foreground">Collaborations</p>
             </div>
           </div>
 
-          {/* Profile Content (Tabs) */}
+          {/* Badges */}
+          {user.badges && user.badges.length > 0 && (
+            <div className="border-brutal p-6 bg-accent/5 mb-8">
+              <h2 className="font-head text-2xl font-bold mb-4">
+                Badges & Achievements
+              </h2>
+              <div className="flex flex-wrap gap-3">
+                {user.badges.map((badge: string) => (
+                  <Badge
+                    key={badge}
+                    className="bg-primary text-primary-foreground text-lg px-4 py-2"
+                  >
+                    {badge}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Main Content Tabs */}
           <ProfileContent
             user={user}
             posts={posts}
             collections={collections}
+            joinedQuests={joinedQuests}
+            completedQuests={completedQuests}
+            collaborations={collaborations}
             isOwnProfile={!!isOwnProfile}
           />
         </div>
@@ -242,3 +339,4 @@ export default async function ProfilePage({
     </>
   )
 }
+
