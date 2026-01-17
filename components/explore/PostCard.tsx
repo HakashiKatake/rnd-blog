@@ -9,6 +9,7 @@ import { Button } from '@/components/retroui/Button'
 import { FaBolt, FaEye } from 'react-icons/fa6'
 import { SignedOut, SignedIn } from '@clerk/nextjs'
 import * as Dialog from '@radix-ui/react-dialog'
+import { BookmarkButton } from '@/components/collections/BookmarkButton'
 import { X } from 'lucide-react'
 
 interface PostCardProps {
@@ -29,6 +30,7 @@ interface PostCardProps {
       avatar?: any
       tier: number
     }
+    isBookmarked?: boolean
   }
 }
 
@@ -116,9 +118,14 @@ function PostCardContent({ post, tierEmojis, tagColors }: { post: any, tierEmoji
         )}
 
         {/* Title */}
-        <h3 className="font-head text-xl font-bold mb-4 line-clamp-2 group-hover:text-primary transition-colors">
-          {post.title}
-        </h3>
+        <div className="flex justify-between items-start mb-4 gap-2">
+          <h3 className="font-head text-xl font-bold line-clamp-2 group-hover:text-primary transition-colors flex-1">
+            {post.title}
+          </h3>
+          <div onClick={(e) => e.preventDefault()}>
+            <BookmarkButton postId={post._id} isBookmarked={post.isBookmarked} />
+          </div>
+        </div>
 
         {/* Cover Image (Under Title) */}
         {coverImage && (

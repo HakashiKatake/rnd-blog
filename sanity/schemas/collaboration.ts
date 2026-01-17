@@ -58,6 +58,14 @@ export const collaborationSchema = defineType({
             description: 'Hours per week',
         }),
         defineField({
+            name: 'maxPositions',
+            title: 'Max Positions',
+            type: 'number',
+            description: 'Maximum number of collaborators allowed (excluding owner)',
+            initialValue: 3,
+            validation: (Rule) => Rule.min(1).max(20),
+        }),
+        defineField({
             name: 'postedBy',
             title: 'Posted By',
             type: 'reference',

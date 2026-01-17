@@ -45,10 +45,31 @@ export default async function ExplorePage({
   }`
 
   // Fetch with fresh data (bypass CDN/Cache for search)
+  const queryParams: any = { tag: tag || '' } // define as any or specific type to avoid ts error
+  if (search) queryParams.search = `*${search}*`
+
   const posts = await client.fetch(query,
-    { tag: tag || '', search: search ? `*${search}*` : '' },
+    queryParams,
     { cache: 'no-store', next: { revalidate: 0 } }
   )
+
+  // Fetch user's bookmarked posts if logged in
+  let bookmarkedPostIds = new Set<string>()
+  const { userId } = await import('@clerk/nextjs/server').then(mod => mod.auth())
+
+  if (userId) {
+    const userQuery = `*[_type == "user" && clerkId == "${userId}"][0]._id`
+    const sanityUserId = await client.fetch(userQuery)
+
+    if (sanityUserId) {
+      const bookmarks = await client.fetch(
+        `*[_type == "collection" && user._ref == $userId].posts[]._ref`,
+        { userId: sanityUserId }
+      )
+      // Flatten and store in Set for O(1) lookup
+      bookmarks.forEach((id: string) => bookmarkedPostIds.add(id))
+    }
+  }
 
   return (
     <>
@@ -85,7 +106,13 @@ export default async function ExplorePage({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {posts.map((post: any) => (
-                <PostCard key={post._id} post={post} />
+                <PostCard
+                  key={post._id}
+                  post={{
+                    ...post,
+                    isBookmarked: bookmarkedPostIds.has(post._id)
+                  }}
+                />
               ))}
             </div>
           )}

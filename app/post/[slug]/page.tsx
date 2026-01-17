@@ -13,6 +13,7 @@ import { EditAction } from '@/components/post/EditAction'
 import { Badge } from '@/components/retroui/Badge'
 import { Button } from '@/components/retroui/Button'
 import { DownloadPdfButton } from '@/components/post/DownloadPdfButton'
+import { BookmarkButton } from '@/components/collections/BookmarkButton'
 
 export default async function PostPage({
   params,
@@ -51,9 +52,12 @@ export default async function PostPage({
             )}
 
             {/* Title */}
-            <h1 className="font-head text-4xl lg:text-5xl font-bold mb-6">
-              {post.title}
-            </h1>
+            <div className="flex justify-between items-start gap-4 mb-6">
+              <h1 className="font-head text-4xl lg:text-5xl font-bold">
+                {post.title}
+              </h1>
+              <BookmarkButton postId={post._id} />
+            </div>
 
             {/* Author & Meta */}
             <div className="flex items-center justify-between border-y-2 border-black py-4">

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs'
 import { Button } from '@/components/retroui/Button'
+import { ThemeToggle } from './ThemeToggle'
 import { FaBolt, FaCompass, FaScroll, FaHandshake, FaTrophy, FaUser } from 'react-icons/fa6'
 
 export function Navigation() {
@@ -64,6 +65,7 @@ export function Navigation() {
 
           {/* Right Section */}
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <SignedIn>
               {/* Create Button */}
               <Link href="/create">

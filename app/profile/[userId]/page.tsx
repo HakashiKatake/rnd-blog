@@ -8,6 +8,7 @@ import { PostCard } from '@/components/explore/PostCard'
 import { Badge } from '@/components/retroui/Badge'
 import { Button } from '@/components/retroui/Button'
 import ProfileDownloadButton from '@/components/profile/ProfileDownloadButton'
+import { ProfileContent } from '@/components/profile/ProfileContent'
 
 import { auth } from '@clerk/nextjs/server'
 
@@ -79,7 +80,31 @@ export default async function ProfilePage({
     { userId: user._id }
   )
 
-  // Robust check: Matches URL param OR matches the stored clerkId in the fetched user doc
+  // Fetch Collections
+  const collections = await client.fetch(
+    `*[_type == "collection" && user._ref == $userId] | order(_createdAt desc) {
+      _id,
+      title,
+      description,
+      isPrivate,
+      "postCount": count(posts),
+      posts[]->{
+        _id,
+        title,
+        slug,
+        excerpt,
+        thumbnail,
+        coverImageUrl,
+        tags,
+        sparkCount,
+        viewCount,
+        publishedAt,
+        "author": author->{name, avatar, tier}
+      }
+    }`,
+    { userId: user._id }
+  )
+
   const isOwnProfile = loggedInClerkId && (loggedInClerkId === userId || loggedInClerkId === user.clerkId)
 
   const tierNames = ['', 'Spark Initiate', 'Idea Igniter', 'Forge Master', 'RnD Fellow']
@@ -93,9 +118,6 @@ export default async function ProfilePage({
           {/* Profile Header */}
           <div className="border-brutal p-8 bg-card mb-8">
             <div className="flex flex-col md:flex-row gap-6 relative items-start">
-
-
-
               {/* Avatar */}
               {user.avatar && (
                 <Image
@@ -124,7 +146,7 @@ export default async function ProfilePage({
                   </div>
                 </div>
 
-                {/* Edit Button & Download (Top Right) */}
+                {/* Edit & Download Buttons */}
                 <div className="flex flex-col sm:flex-row gap-2 items-end sm:items-center">
                   <ProfileDownloadButton user={user} posts={posts} />
 
@@ -136,7 +158,6 @@ export default async function ProfilePage({
                     </Link>
                   )}
                 </div>
-
 
                 {user.bio && <p className="text-xl font-medium mb-4">{user.bio}</p>}
 
@@ -167,36 +188,20 @@ export default async function ProfilePage({
                   </div>
                 )}
 
-
                 {/* Social Links */}
                 <div className="flex gap-3">
                   {user.githubUrl && (
-                    <a
-                      href={user.githubUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
+                    <a href={user.githubUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                       GitHub →
                     </a>
                   )}
                   {user.linkedinUrl && (
-                    <a
-                      href={user.linkedinUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
+                    <a href={user.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                       LinkedIn →
                     </a>
                   )}
                   {user.portfolioUrl && (
-                    <a
-                      href={user.portfolioUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
+                    <a href={user.portfolioUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                       Portfolio →
                     </a>
                   )}
@@ -208,74 +213,32 @@ export default async function ProfilePage({
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div className="border-brutal p-6 bg-primary/5 text-center">
-              <p className="text-4xl font-head font-bold text-primary mb-2">
-                {user.points}
-              </p>
+              <p className="text-4xl font-head font-bold text-primary mb-2">{user.points}</p>
               <p className="text-sm text-muted-foreground">Total Points</p>
             </div>
             <div className="border-brutal p-6 bg-card text-center">
-              <p className="text-4xl font-head font-bold mb-2">
-                {user.postsPublished}
-              </p>
+              <p className="text-4xl font-head font-bold mb-2">{user.postsPublished}</p>
               <p className="text-sm text-muted-foreground">Posts Published</p>
             </div>
             <div className="border-brutal p-6 bg-card text-center">
-              <p className="text-4xl font-head font-bold mb-2">
-                {user.sparksReceived}
-              </p>
+              <p className="text-4xl font-head font-bold mb-2">{user.sparksReceived}</p>
               <p className="text-sm text-muted-foreground">Sparks Received</p>
             </div>
             <div className="border-brutal p-6 bg-card text-center">
-              <p className="text-4xl font-head font-bold mb-2">
-                {user.collaborationsCount}
-              </p>
+              <p className="text-4xl font-head font-bold mb-2">{user.collaborationsCount}</p>
               <p className="text-sm text-muted-foreground">Collaborations</p>
             </div>
           </div>
 
-          {/* Badges */}
-          {user.badges && user.badges.length > 0 && (
-            <div className="border-brutal p-6 bg-accent/5 mb-8">
-              <h2 className="font-head text-2xl font-bold mb-4">
-                Badges & Achievements
-              </h2>
-              <div className="flex flex-wrap gap-3">
-                {user.badges.map((badge: string) => (
-                  <Badge
-                    key={badge}
-                    className="bg-primary text-primary-foreground text-lg px-4 py-2"
-                  >
-                    {badge}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Posts */}
-          <div>
-            <h2 className="font-head text-2xl font-bold mb-6">
-              Published Posts ({posts.length})
-            </h2>
-            {posts.length === 0 ? (
-              <div className="border-brutal p-12 text-center bg-card">
-                <p className="text-muted-foreground">
-                  No published posts yet.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {posts.map((post: any) => (
-                  <PostCard key={post._id} post={post} />
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Profile Content (Tabs) */}
+          <ProfileContent
+            user={user}
+            posts={posts}
+            collections={collections}
+            isOwnProfile={!!isOwnProfile}
+          />
         </div>
-      </main >
-      <div className="fixed bottom-0 left-0 bg-black text-white p-2 text-xs z-50 opacity-75">
-        Debug: LoggedIn={loggedInClerkId?.slice(-5)} | Param={userId?.slice(-5)} | UserClerk={user?.clerkId?.slice(-5)} | Own={isOwnProfile ? 'YES' : 'NO'}
-      </div>
+      </main>
     </>
   )
 }
