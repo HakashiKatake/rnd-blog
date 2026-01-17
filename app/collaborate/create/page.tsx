@@ -64,7 +64,7 @@ export default function CreateProjectPage() {
             ← Back to Projects
           </Button>
 
-          <Card className="p-8 border-brutal shadow-brutal bg-white">
+          <Card className="p-8 border-brutal shadow-brutal bg-card">
             <h1 className="font-head text-3xl font-bold mb-6">Post a New Project</h1>
             <p className="text-muted-foreground mb-8">
               Find collaborators to build your next big idea with.
@@ -76,7 +76,7 @@ export default function CreateProjectPage() {
                 <input
                   required
                   type="text"
-                  className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all"
+                  className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all bg-background"
                   placeholder="e.g. AI-Powered Study Assistant"
                   value={formData.projectName}
                   onChange={e => setFormData({ ...formData, projectName: e.target.value })}
@@ -88,7 +88,7 @@ export default function CreateProjectPage() {
                 <textarea
                   required
                   rows={5}
-                  className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all"
+                  className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all bg-background"
                   placeholder="What are you building? What problem does it solve?"
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
@@ -99,7 +99,7 @@ export default function CreateProjectPage() {
                 <label className="block font-bold mb-2">Skills Needed (comma separated)</label>
                 <input
                   type="text"
-                  className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all"
+                  className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all bg-background"
                   placeholder="React, Python, Design, etc."
                   value={formData.skillsNeeded}
                   onChange={e => setFormData({ ...formData, skillsNeeded: e.target.value })}
@@ -110,7 +110,7 @@ export default function CreateProjectPage() {
                 <div>
                   <label className="block font-bold mb-2">Duration</label>
                   <select
-                    className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all bg-white"
+                    className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all bg-background"
                     value={formData.duration}
                     onChange={e => setFormData({ ...formData, duration: e.target.value })}
                   >
@@ -128,7 +128,7 @@ export default function CreateProjectPage() {
                   <label className="block font-bold mb-2">Weekly Commitment</label>
                   <input
                     type="text"
-                    className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all"
+                    className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all bg-background"
                     placeholder="e.g. 5-10 hours"
                     value={formData.commitment}
                     onChange={e => setFormData({ ...formData, commitment: e.target.value })}
@@ -141,7 +141,7 @@ export default function CreateProjectPage() {
                     type="number"
                     min="1"
                     max="20"
-                    className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all"
+                    className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all bg-background"
                     value={formData.maxPositions}
                     onChange={e => setFormData({ ...formData, maxPositions: parseInt(e.target.value) })}
                   />
