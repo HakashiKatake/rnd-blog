@@ -10,6 +10,8 @@ export default async function CreatePage() {
     redirect('/sign-in')
   }
 
+
+
   return (
     <>
       <Navigation />

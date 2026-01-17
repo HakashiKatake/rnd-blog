@@ -8,7 +8,8 @@ import { tomorrow } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { Button } from '@/components/retroui/Button'
 import { Input } from '@/components/retroui/Input'
 import { toast } from 'sonner'
-import { Code, Sparkles, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { Code, Sparkles, Image as ImageIcon, Loader2, UploadCloud } from 'lucide-react'
+import Image from 'next/image'
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,7 @@ interface PostFormProps {
     excerpt: string
     content: string
     tags: string[]
+    coverImageUrl?: string
   }
   postId?: string // If present, it's an edit
 }
@@ -42,7 +44,7 @@ interface PostFormProps {
 export function PostForm({ userId, initialData, postId }: PostFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showPreview, setShowPreview] = useState(false)
+  const [showPreview, setShowPreview] = useState(true) // Default to true
   const [isTermsOpen, setIsTermsOpen] = useState(false)
   const [signature, setSignature] = useState('')
 
@@ -53,6 +55,7 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
     excerpt: initialData?.excerpt || '',
     content: initialData?.content || '',
     tags: initialData?.tags || [],
+    coverImageUrl: initialData?.coverImageUrl || '',
   })
 
   // Initialize char counts based on initialData
@@ -84,7 +87,44 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
   const [aiSuggestions, setAiSuggestions] = useState<string | null>(null)
   const [isImproving, setIsImproving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [isUploadingCover, setIsUploadingCover] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const coverInputRef = useRef<HTMLInputElement>(null)
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingCover(true)
+    const toastId = toast.loading('Uploading cover image...')
+
+    try {
+      const res = await fetch(`/api/upload?type=image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': file.type || 'application/octet-stream',
+        },
+        body: file,
+      })
+
+      if (!res.ok) {
+        throw new Error('Upload failed')
+      }
+
+      const data = await res.json()
+
+      if (data.secure_url) {
+        handleChange("coverImageUrl", data.secure_url)
+        toast.success("Cover image uploaded!", { id: toastId })
+      }
+    } catch (err: any) {
+      console.error(err)
+      toast.error("Failed to upload cover image", { id: toastId })
+    } finally {
+      setIsUploadingCover(false)
+      if (coverInputRef.current) coverInputRef.current.value = ''
+    }
+  }
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -226,6 +266,56 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                 required
                 className="w-full"
               />
+            </div>
+
+            {/* Cover Image */}
+            <div>
+              <label className="block font-semibold mb-2">Cover Image</label>
+              <div className="border-2 border-dashed border-black/20 rounded-md p-4 text-center hover:bg-muted/10 transition-colors">
+                <input
+                  type="file"
+                  ref={coverInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleCoverUpload}
+                />
+
+                {formData.coverImageUrl ? (
+                  <div className="relative w-full h-48 rounded-md overflow-hidden border-2 border-black group">
+                    <Image
+                      src={formData.coverImageUrl}
+                      alt="Cover"
+                      fill
+                      className="object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleChange("coverImageUrl", "")}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      Remove
+                    </button>
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => coverInputRef.current?.click()}
+                        className="text-white border-white hover:bg-white/20"
+                      >
+                        Change Image
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => coverInputRef.current?.click()}>
+                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                      {isUploadingCover ? <Loader2 className="w-6 h-6 animate-spin" /> : <UploadCloud className="w-6 h-6" />}
+                    </div>
+                    <p className="text-sm font-medium">Click to upload cover image</p>
+                    <p className="text-xs text-muted-foreground">Recommended: 1200x630px</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Excerpt */}
@@ -439,6 +529,18 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                 <h1 className="font-head text-3xl font-bold mb-4">
                   {formData.title || 'Your Title Here'}
                 </h1>
+
+                {formData.coverImageUrl && (
+                  <div className="relative w-full h-64 mb-6 rounded-md overflow-hidden border-2 border-black">
+                    <Image
+                      src={formData.coverImageUrl}
+                      alt="Cover Preview"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                )}
+
                 {formData.excerpt && (
                   <p className="text-muted-foreground mb-6 italic">
                     {formData.excerpt}

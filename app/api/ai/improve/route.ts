@@ -28,6 +28,10 @@ export async function POST(req: NextRequest) {
        - Do not change the underlying code or technical logic.
     2. **Structure Analysis**: Analyze the content formatting against an ideal blog structure.
     
+    3. **Preserve Markdown**:
+       - **CRITICAL**: Do NOT remove, break, or modify any Markdown syntax for images (e.g., "![alt](url)"), links, or code blocks.
+       - Ensure all image links remain exactly where they were relative to the surrounding text.
+    
     **OUTPUT FORMAT**:
     Return the **polished info-dense content first**.
     Then, append this exact separator: <<<SUGGESTIONS>>>
@@ -39,6 +43,7 @@ export async function POST(req: NextRequest) {
     **CRITICAL RULES:**
     - Do NOT reformat the content yourself (do not add H1/H2 if they aren't there).
     - Do NOT include the suggestions in the first part.
+    - **Verify that all "![Image](...)" tags present in the input are present in the output.**
     
     Content to improve:
     ${content}`;

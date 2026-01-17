@@ -22,14 +22,14 @@ export default async function CollaboratePage() {
               your skills, or post your own project to find collaborators.
             </p>
             <div className="mt-8 flex gap-4">
-               <Link href="/collaborate/create">
-                 <Button className="font-bold border-2 border-black hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-primary text-primary-foreground">
-                   + Post a Project
-                 </Button>
-               </Link>
-               <Button variant="outline" className="font-bold border-2 border-black hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-white">
-                 Browsing {collaborations.length} Projects
-               </Button>
+              <Link href="/collaborate/create">
+                <Button className="font-bold border-2 border-black hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-primary text-primary-foreground">
+                  + Post a Project
+                </Button>
+              </Link>
+              <Button variant="outline" className="font-bold border-2 border-black hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-card text-foreground">
+                Browsing {collaborations.length} Projects
+              </Button>
             </div>
           </div>
         </section>

@@ -5,9 +5,16 @@ import { Navigation } from "@/components/layout/Navigation";
 import Link from "next/link";
 
 import { auth } from "@clerk/nextjs/server";
+import { getOrCreateUser } from "@/lib/auth/user";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
   const { userId } = await auth();
+
+  if (userId) {
+    await getOrCreateUser();
+  }
+
   const startBuildingHref = userId ? "/explore" : "/sign-up";
 
   return (

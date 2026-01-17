@@ -2,6 +2,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import type { Metadata } from "next";
 import { Poppins, Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from 'sonner';
+import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css";
 
 const poppins = Poppins({
@@ -38,12 +39,19 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" suppressHydrationWarning>
         <body
           className={`${poppins.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased`}
         >
-          {children}
-          <Toaster richColors closeButton />
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster richColors closeButton />
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

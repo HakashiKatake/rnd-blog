@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { projectName, description, skillsNeeded, duration, commitment } = await req.json()
+        const { projectName, description, skillsNeeded, duration, commitment, maxPositions } = await req.json()
 
         // 1. Get Sanity User ID from Clerk ID
         const userQuery = `*[_type == "user" && clerkId == "${userId}"][0]._id`
@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
             skillsNeeded: skillsNeeded ? skillsNeeded.split(',').map((s: string) => s.trim()) : [],
             duration,
             commitment,
+            maxPositions: maxPositions || 3,
             status: 'open',
             postedBy: {
                 _type: 'reference',

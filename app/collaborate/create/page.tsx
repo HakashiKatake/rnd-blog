@@ -11,13 +11,14 @@ export default function CreateProjectPage() {
   const router = useRouter()
   const { user, isLoaded } = useUser()
   const [loading, setLoading] = useState(false)
-  
+
   const [formData, setFormData] = useState({
     projectName: '',
     description: '',
     skillsNeeded: '',
     duration: '1-2 months',
-    commitment: '5-10 hours/week'
+    commitment: '5-10 hours/week',
+    maxPositions: 3
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,15 +56,15 @@ export default function CreateProjectPage() {
       <Navigation />
       <main className="min-h-screen bg-background py-12 px-4">
         <div className="max-w-2xl mx-auto">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             className="mb-8"
             onClick={() => router.back()}
           >
             ← Back to Projects
           </Button>
 
-          <Card className="p-8 border-brutal shadow-brutal bg-white">
+          <Card className="p-8 border-brutal shadow-brutal bg-card">
             <h1 className="font-head text-3xl font-bold mb-6">Post a New Project</h1>
             <p className="text-muted-foreground mb-8">
               Find collaborators to build your next big idea with.
@@ -75,10 +76,10 @@ export default function CreateProjectPage() {
                 <input
                   required
                   type="text"
-                  className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all"
+                  className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all bg-background"
                   placeholder="e.g. AI-Powered Study Assistant"
                   value={formData.projectName}
-                  onChange={e => setFormData({...formData, projectName: e.target.value})}
+                  onChange={e => setFormData({ ...formData, projectName: e.target.value })}
                 />
               </div>
 
@@ -87,10 +88,10 @@ export default function CreateProjectPage() {
                 <textarea
                   required
                   rows={5}
-                  className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all"
+                  className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all bg-background"
                   placeholder="What are you building? What problem does it solve?"
                   value={formData.description}
-                  onChange={e => setFormData({...formData, description: e.target.value})}
+                  onChange={e => setFormData({ ...formData, description: e.target.value })}
                 />
               </div>
 
@@ -98,10 +99,10 @@ export default function CreateProjectPage() {
                 <label className="block font-bold mb-2">Skills Needed (comma separated)</label>
                 <input
                   type="text"
-                  className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all"
+                  className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all bg-background"
                   placeholder="React, Python, Design, etc."
                   value={formData.skillsNeeded}
-                  onChange={e => setFormData({...formData, skillsNeeded: e.target.value})}
+                  onChange={e => setFormData({ ...formData, skillsNeeded: e.target.value })}
                 />
               </div>
 
@@ -109,9 +110,9 @@ export default function CreateProjectPage() {
                 <div>
                   <label className="block font-bold mb-2">Duration</label>
                   <select
-                    className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all bg-white"
+                    className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all bg-background"
                     value={formData.duration}
-                    onChange={e => setFormData({...formData, duration: e.target.value})}
+                    onChange={e => setFormData({ ...formData, duration: e.target.value })}
                   >
                     <option>1-2 weeks</option>
                     <option>3-4 weeks</option>
@@ -120,14 +121,29 @@ export default function CreateProjectPage() {
                   </select>
                 </div>
 
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block font-bold mb-2">Weekly Commitment</label>
                   <input
                     type="text"
-                    className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all"
+                    className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all bg-background"
                     placeholder="e.g. 5-10 hours"
                     value={formData.commitment}
-                    onChange={e => setFormData({...formData, commitment: e.target.value})}
+                    onChange={e => setFormData({ ...formData, commitment: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold mb-2">Number of People (Max Entries)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    className="w-full p-3 border-2 border-black rounded-lg focus:shadow-brutal-sm outline-none transition-all bg-background"
+                    value={formData.maxPositions}
+                    onChange={e => setFormData({ ...formData, maxPositions: parseInt(e.target.value) })}
                   />
                 </div>
               </div>

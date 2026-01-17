@@ -12,6 +12,13 @@ import { Readable } from 'stream';
 
 export async function POST(req: NextRequest) {
     try {
+        if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+            console.error('Missing Cloudinary credentials');
+            return NextResponse.json(
+                { error: 'Server configuration error: Missing Cloudinary credentials. Please restart the server.' },
+                { status: 500 }
+            );
+        }
 
 
         // Get resource type from query param (video or image)

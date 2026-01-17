@@ -50,6 +50,11 @@ export const postSchema = defineType({
             },
         }),
         defineField({
+            name: 'coverImageUrl',
+            title: 'Cover Image URL',
+            type: 'url',
+        }),
+        defineField({
             name: 'tags',
             title: 'Tags',
             type: 'array',
