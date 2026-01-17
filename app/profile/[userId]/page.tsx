@@ -1,10 +1,19 @@
 import { client, urlFor, getImageUrl } from '@/lib/sanity/client'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import Image from 'next/image'
+import { currentUser } from '@clerk/nextjs/server'
 import { Navigation } from '@/components/layout/Navigation'
 import { PostCard } from '@/components/explore/PostCard'
 import { Badge } from '@/components/retroui/Badge'
 import { Button } from '@/components/retroui/Button'
+import ProfileDownloadButton from '@/components/profile/ProfileDownloadButton'
+
+import { auth } from '@clerk/nextjs/server'
+
+import { getOrCreateUser } from '@/lib/auth/user'
+
+export const dynamic = 'force-dynamic'
 
 export default async function ProfilePage({
   params,
@@ -12,6 +21,16 @@ export default async function ProfilePage({
   params: Promise<{ userId: string }>
 }) {
   const { userId } = await params
+  const { userId: loggedInClerkId } = await auth()
+
+  console.log(`[Profile Debug] Params ID: ${userId}, LoggedInID: ${loggedInClerkId}`)
+
+  // If viewing own profile by Clerk ID, ensure Sanity user exists
+  if (loggedInClerkId && loggedInClerkId === userId) {
+    await getOrCreateUser()
+  }
+
+
 
   const user = await client.fetch(
     `*[_type == "user" && (_id == $userId || clerkId == $userId)][0] {
@@ -20,6 +39,8 @@ export default async function ProfilePage({
       email,
       avatar,
       bio,
+      about,
+      education,
       university,
       location,
       tier,
@@ -30,7 +51,8 @@ export default async function ProfilePage({
       badges,
       githubUrl,
       linkedinUrl,
-      portfolioUrl
+      portfolioUrl,
+      clerkId
     }`,
     { userId }
   )
@@ -47,14 +69,18 @@ export default async function ProfilePage({
       slug,
       excerpt,
       thumbnail,
+      coverImageUrl,
       tags,
       sparkCount,
       viewCount,
       publishedAt,
       "author": author->{name, avatar, tier}
     }`,
-    { userId: user._id } // Use the actual Sanity ID from the fetched user
+    { userId: user._id }
   )
+
+  // Robust check: Matches URL param OR matches the stored clerkId in the fetched user doc
+  const isOwnProfile = loggedInClerkId && (loggedInClerkId === userId || loggedInClerkId === user.clerkId)
 
   const tierNames = ['', 'Spark Initiate', 'Idea Igniter', 'Forge Master', 'RnD Fellow']
   const tierEmojis = ['', '⚡', '🔥', '⚙️', '🏆']
@@ -66,7 +92,10 @@ export default async function ProfilePage({
         <div className="container mx-auto px-4 py-12">
           {/* Profile Header */}
           <div className="border-brutal p-8 bg-card mb-8">
-            <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex flex-col md:flex-row gap-6 relative items-start">
+
+
+
               {/* Avatar */}
               {user.avatar && (
                 <Image
@@ -95,21 +124,49 @@ export default async function ProfilePage({
                   </div>
                 </div>
 
-                {user.bio && <p className="text-muted-foreground mb-4">{user.bio}</p>}
+                {/* Edit Button & Download (Top Right) */}
+                <div className="flex flex-col sm:flex-row gap-2 items-end sm:items-center">
+                  <ProfileDownloadButton user={user} posts={posts} />
+
+                  {isOwnProfile && (
+                    <Link href="/onboarding">
+                      <Button size="sm" variant="outline" className="border-2 border-black hover:bg-black hover:text-white transition-all w-full md:w-auto">
+                        Edit Profile ✏️
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+
+
+                {user.bio && <p className="text-xl font-medium mb-4">{user.bio}</p>}
 
                 {/* Meta */}
-                <div className="flex flex-wrap gap-4 text-sm mb-4">
+                <div className="flex flex-wrap gap-4 text-sm mb-6">
                   {user.university && (
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1 bg-muted/20 px-2 py-1 rounded border border-black/10">
                       🎓 {user.university}
                     </span>
                   )}
+                  {user.education && (
+                    <span className="flex items-center gap-1 bg-muted/20 px-2 py-1 rounded border border-black/10">
+                      📜 {user.education}
+                    </span>
+                  )}
                   {user.location && (
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1 bg-muted/20 px-2 py-1 rounded border border-black/10">
                       📍 {user.location}
                     </span>
                   )}
                 </div>
+
+                {/* About Me */}
+                {user.about && (
+                  <div className="mb-6 p-4 bg-muted/10 border-l-4 border-primary rounded-r-md">
+                    <h3 className="font-bold text-sm text-primary mb-1 uppercase tracking-wide">About Me</h3>
+                    <p className="text-muted-foreground whitespace-pre-wrap font-body">{user.about}</p>
+                  </div>
+                )}
+
 
                 {/* Social Links */}
                 <div className="flex gap-3">
@@ -215,7 +272,10 @@ export default async function ProfilePage({
             )}
           </div>
         </div>
-      </main>
+      </main >
+      <div className="fixed bottom-0 left-0 bg-black text-white p-2 text-xs z-50 opacity-75">
+        Debug: LoggedIn={loggedInClerkId?.slice(-5)} | Param={userId?.slice(-5)} | UserClerk={user?.clerkId?.slice(-5)} | Own={isOwnProfile ? 'YES' : 'NO'}
+      </div>
     </>
   )
 }

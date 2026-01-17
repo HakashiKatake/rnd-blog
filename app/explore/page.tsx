@@ -2,6 +2,8 @@ import { client, queries } from '@/lib/sanity/client'
 import { Navigation } from '@/components/layout/Navigation'
 import { PostCard } from '@/components/explore/PostCard'
 import { FilterBar } from '@/components/explore/FilterBar'
+import { getOrCreateUser } from "@/lib/auth/user"; // Import user helper
+import { redirect } from "next/navigation";
 
 // Force dynamic rendering to ensure searchParams work correctly
 export const dynamic = 'force-dynamic'
@@ -12,6 +14,8 @@ export default async function ExplorePage({
   searchParams: Promise<{ tag?: string; search?: string }>
 }) {
   const { tag, search } = await searchParams
+
+
 
 
   // Build query with filters
@@ -32,6 +36,7 @@ export default async function ExplorePage({
     slug,
     excerpt,
     thumbnail,
+    coverImageUrl,
     tags,
     "sparkCount": coalesce(sparkCount, 0),
     viewCount,

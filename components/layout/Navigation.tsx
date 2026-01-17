@@ -1,13 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs'
 import { Button } from '@/components/retroui/Button'
 import { FaBolt, FaCompass, FaScroll, FaHandshake, FaTrophy, FaUser } from 'react-icons/fa6'
 
 export function Navigation() {
   const pathname = usePathname()
+  const router = useRouter()
   const { user } = useUser()
 
   const isActive = (path: string) => pathname === path
@@ -26,8 +27,8 @@ export function Navigation() {
             <Link
               href="/explore"
               className={`font-body transition-colors flex items-center gap-2 ${isActive('/explore')
-                  ? 'text-primary border-b-2 border-primary'
-                  : 'text-foreground hover:text-primary'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-foreground hover:text-primary'
                 }`}
             >
               <FaCompass /> Explore
@@ -35,8 +36,8 @@ export function Navigation() {
             <Link
               href="/quests"
               className={`font-body transition-colors flex items-center gap-2 ${isActive('/quests')
-                  ? 'text-primary border-b-2 border-primary'
-                  : 'text-foreground hover:text-primary'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-foreground hover:text-primary'
                 }`}
             >
               <FaScroll /> Quests
@@ -44,8 +45,8 @@ export function Navigation() {
             <Link
               href="/collaborate"
               className={`font-body transition-colors flex items-center gap-2 ${isActive('/collaborate')
-                  ? 'text-primary border-b-2 border-primary'
-                  : 'text-foreground hover:text-primary'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-foreground hover:text-primary'
                 }`}
             >
               <FaHandshake /> Collaborate
@@ -53,8 +54,8 @@ export function Navigation() {
             <Link
               href="/leaderboard"
               className={`font-body transition-colors flex items-center gap-2 ${isActive('/leaderboard')
-                  ? 'text-primary border-b-2 border-primary'
-                  : 'text-foreground hover:text-primary'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-foreground hover:text-primary'
                 }`}
             >
               <FaTrophy /> Leaderboard
@@ -64,15 +65,6 @@ export function Navigation() {
           {/* Right Section */}
           <div className="flex items-center gap-4">
             <SignedIn>
-              {/* Profile Link (New) */}
-              {user && (
-                <Link href={`/profile/${user.id}`}>
-                  <Button size="sm" variant="ghost" className="hover:bg-primary/10">
-                    <FaUser />
-                  </Button>
-                </Link>
-              )}
-
               {/* Create Button */}
               <Link href="/create">
                 <Button
@@ -92,7 +84,15 @@ export function Navigation() {
                   },
                 }}
                 afterSignOutUrl="/"
-              />
+              >
+                <UserButton.MenuItems>
+                  <UserButton.Action
+                    label="My Spark Profile"
+                    labelIcon={<FaUser />}
+                    onClick={() => router.push(`/profile/${user?.id}`)}
+                  />
+                </UserButton.MenuItems>
+              </UserButton>
             </SignedIn>
 
             <SignedOut>

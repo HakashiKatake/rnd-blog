@@ -89,14 +89,14 @@ export default async function PostPage({
             </div>
 
             {/* Featured Image */}
-            {post.thumbnail && (
+            {(post.coverImageUrl || post.thumbnail) && (
               <div className="my-8 border-brutal overflow-hidden">
                 <Image
-                  src={urlFor(post.thumbnail).width(800).height(450).url()}
+                  src={post.coverImageUrl || urlFor(post.thumbnail).width(800).height(450).url()}
                   alt={post.title}
                   width={800}
                   height={450}
-                  className="w-full h-auto"
+                  className="w-full h-auto object-cover"
                 />
               </div>
             )}
@@ -113,6 +113,24 @@ export default async function PostPage({
           <div className="prose prose-brutal prose-lg max-w-none mb-12 break-words overflow-hidden">
             <ReactMarkdown
               components={{
+                img({ node, ...props }: any) {
+                  if (props.alt === 'Video') {
+                    return (
+                      <video
+                        src={props.src}
+                        controls
+                        className="w-full rounded-md border-2 border-black my-4"
+                      />
+                    )
+                  }
+                  return (
+                    <img
+                      {...props}
+                      className="w-full rounded-md border-2 border-black my-4"
+                      alt={props.alt}
+                    />
+                  )
+                },
                 code({ node, inline, className, children, ...props }: any) {
                   const match = /language-(\w+)/.exec(className || '')
                   return !inline && match ? (

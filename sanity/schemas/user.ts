@@ -45,6 +45,23 @@ export const userSchema = defineType({
             type: 'string',
         }),
         defineField({
+            name: 'about',
+            title: 'About Me',
+            type: 'text',
+            rows: 5,
+        }),
+        defineField({
+            name: 'education',
+            title: 'Education / Qualifications',
+            type: 'string', // Could be array, keeping simple for now
+        }),
+        defineField({
+            name: 'isOnboarded',
+            title: 'Is Onboarded',
+            type: 'boolean',
+            initialValue: false,
+        }),
+        defineField({
             name: 'tier',
             title: 'Tier',
             type: 'number',

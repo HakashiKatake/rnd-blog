@@ -18,6 +18,7 @@ interface PostCardProps {
     slug: { current: string }
     excerpt?: string
     thumbnail?: any
+    coverImageUrl?: string
     tags?: string[]
     sparkCount: number
     viewCount: number
@@ -43,10 +44,10 @@ export function PostCard({ post }: PostCardProps) {
 
   return (
     <>
-      <Card className="border-brutal hover:shadow-brutal transition-all overflow-hidden group relative">
+      <Card className="border-brutal hover:shadow-brutal transition-all overflow-hidden group relative flex flex-col h-full bg-card">
         {/* Signed In Logic: Normal Navigation */}
         <SignedIn>
-          <Link href={`/post/${post.slug.current}`} className="block h-full">
+          <Link href={`/post/${post.slug.current}`} className="block h-full flex flex-col">
             <PostCardContent post={post} tierEmojis={tierEmojis} tagColors={tagColors} />
           </Link>
         </SignedIn>
@@ -55,7 +56,7 @@ export function PostCard({ post }: PostCardProps) {
         <SignedOut>
           <Dialog.Root>
             <Dialog.Trigger asChild>
-              <div className="cursor-pointer h-full">
+              <div className="cursor-pointer h-full flex flex-col">
                 <PostCardContent post={post} tierEmojis={tierEmojis} tagColors={tagColors} />
               </div>
             </Dialog.Trigger>
@@ -95,21 +96,11 @@ export function PostCard({ post }: PostCardProps) {
 }
 
 function PostCardContent({ post, tierEmojis, tagColors }: { post: any, tierEmojis: string[], tagColors: Record<string, string> }) {
+  const coverImage = post.coverImageUrl || (post.thumbnail ? getImageUrl(post.thumbnail) : null)
+
   return (
     <>
-      {/* Thumbnail */}
-      {post.thumbnail && (
-        <div className="relative w-full h-48 overflow-hidden border-b-2 border-black">
-          <Image
-            src={urlFor(post.thumbnail).width(400).height(300).url()}
-            alt={post.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        </div>
-      )}
-
-      <div className="p-6">
+      <div className="p-6 flex flex-col flex-1">
         {/* Tags */}
         {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
@@ -125,13 +116,25 @@ function PostCardContent({ post, tierEmojis, tagColors }: { post: any, tierEmoji
         )}
 
         {/* Title */}
-        <h3 className="font-head text-xl font-bold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+        <h3 className="font-head text-xl font-bold mb-4 line-clamp-2 group-hover:text-primary transition-colors">
           {post.title}
         </h3>
 
+        {/* Cover Image (Under Title) */}
+        {coverImage && (
+          <div className="relative w-full aspect-video rounded-md overflow-hidden border-2 border-black mb-4">
+            <Image
+              src={coverImage}
+              alt={post.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          </div>
+        )}
+
         {/* Excerpt */}
         {post.excerpt && (
-          <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+          <p className="text-muted-foreground text-sm mb-4 line-clamp-3 flex-1">
             {post.excerpt}
           </p>
         )}

@@ -34,6 +34,7 @@ export async function getOrCreateUser() {
         postsPublished: 0,
         collaborationsCount: 0,
         badges: [],
+        isOnboarded: false,
     })
 
     return newUser

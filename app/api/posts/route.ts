@@ -11,10 +11,10 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json()
-        const { title, excerpt, content, tags, userId } = body
+        const { title, excerpt, content, tags, userId, coverImageUrl } = body
 
-        // Create post in Sanity
-        const post = await client.create({
+        // Create post object
+        const postDoc = {
             _type: 'post',
             title,
             excerpt,
@@ -31,20 +31,23 @@ export async function POST(request: NextRequest) {
                 _type: 'reference',
                 _ref: userId,
             },
-            status: 'pending', // Auto-approve for now (TODO: implement moderation)
+            status: 'pending',
             sparkCount: 0,
             viewCount: 0,
             publishedAt: new Date().toISOString(),
-        })
+            ...(coverImageUrl && { coverImageUrl }), // Only add if present
+        }
+
+        const post = await client.create(postDoc)
 
         return NextResponse.json({
             message: 'Post created successfully',
             slug: post.slug.current,
         })
-    } catch (error) {
-        console.error('Error creating post:', error)
+    } catch (error: any) {
+        console.error('Error creating post:', JSON.stringify(error, null, 2))
         return NextResponse.json(
-            { error: 'Failed to create post' },
+            { error: error.message || 'Failed to create post' },
             { status: 500 }
         )
     }

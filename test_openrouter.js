@@ -1,4 +1,4 @@
-const apiKey = process.env.OPENROUTER_API_KEY || "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";
+const apiKey = process.env.OPENROUTER_API_KEY || "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";
 
 async function testOpenRouter() {
     console.log("Testing OpenRouter with key:", apiKey.substring(0, 10) + "...");
