@@ -240,15 +240,18 @@ export default async function ProfilePage({
                 {/* Social Links */}
                 <div className="flex gap-3">
                   {user.githubUrl && (
-                    <a
-                      href={user.githubUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline hover:text-primary/80 transition-colors"
-                    >
-                      GitHub →
-                    </a>
-                  )}
+                    {
+                      user.githubUrl && (
+                        <a
+                          href={user.githubUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline hover:text-primary/80 transition-colors"
+                        >
+                          GitHub →
+                        </a>
+                      )
+                    }
                   {user.linkedinUrl && (
                     <a
                       href={user.linkedinUrl}
