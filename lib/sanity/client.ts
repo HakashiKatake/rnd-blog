@@ -115,7 +115,8 @@ export const queries = {
     skillsNeeded,
     duration,
     commitment,
-    "postedBy": postedBy->{name, avatar, tier},
+    "postedBy": postedBy->{_id, name, avatar, tier, clerkId},
+    "teamMembers": teamMembers[]->{_id, clerkId},
     "applicantCount": count(applicants)
   }`,
 
@@ -130,5 +131,25 @@ export const queries = {
     postsPublished,
     collaborationsCount,
     university
+  }`,
+
+  // Get single collaboration by ID
+  getCollaborationById: (id: string) => `*[_type == "collaboration" && _id == "${id}"][0] {
+    _id,
+    projectName,
+    description,
+    skillsNeeded,
+    duration,
+    commitment,
+    githubRepo,
+    designDoc,
+    messages[] {
+        text,
+        timestamp,
+        "user": user->{name, avatar}
+    },
+    "postedBy": postedBy->{_id, name, avatar, tier},
+    "teamMembers": teamMembers[]->{_id, name, avatar, tier, university},
+    "applicants": applicants
   }`,
 }

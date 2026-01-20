@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useUser } from '@clerk/nextjs'
 import { getImageUrl } from '@/lib/sanity/client'
 import { toast } from 'sonner'
+import Link from 'next/link'
 import { FaPaperPlane, FaClock, FaUsers, FaBriefcase } from 'react-icons/fa6'
 import { Badge } from '@/components/retroui/Badge'
 import { Card } from '@/components/retroui/Card'
@@ -19,10 +20,13 @@ interface ProjectCardProps {
     duration?: string
     commitment?: string
     postedBy: {
+      _id: string
       name: string
       avatar?: any
       tier: number
+      clerkId?: string
     }
+    teamMembers?: { _id: string; clerkId?: string }[]
     applicantCount: number
   }
 }
@@ -31,7 +35,12 @@ interface ProjectCardProps {
 export function ProjectCard({ project }: ProjectCardProps) {
   const { user } = useUser()
   const [isApplying, setIsApplying] = useState(false)
-  const [hasApplied, setHasApplied] = useState(false) // In a real app, check 'applicants' array
+  const [hasApplied, setHasApplied] = useState(false)
+
+  // Check if user is a member or owner
+  const isOwner = user && project.postedBy.clerkId === user.id
+  const isMember = user && project.teamMembers?.some((member) => member.clerkId === user.id)
+  const canEnter = isOwner || isMember
 
   const handleApply = async () => {
     if (!user) {
@@ -64,6 +73,8 @@ export function ProjectCard({ project }: ProjectCardProps) {
       setIsApplying(false)
     }
   }
+
+  const workspacePath = `/collaborate/${project._id}/project`
 
   return (
     <Card className="border-brutal hover:shadow-brutal transition-all overflow-hidden flex flex-col h-full bg-card">
@@ -137,13 +148,23 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
       {/* Action */}
       <div className="p-6 pt-0">
-        <Button
-          onClick={handleApply}
-          disabled={isApplying || hasApplied}
-          className="w-full border-brutal shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {isApplying ? 'Applying...' : hasApplied ? 'Applied ✅' : <><FaPaperPlane /> Apply to Join →</>}
-        </Button>
+        {canEnter ? (
+          <Link href={workspacePath} className="w-full">
+            <Button
+              className="w-full border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all bg-green-500 text-white font-bold flex items-center justify-center gap-2"
+            >
+              Enter Workspace →
+            </Button>
+          </Link>
+        ) : (
+          <Button
+            onClick={handleApply}
+            disabled={isApplying || hasApplied}
+            className="w-full border-brutal shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isApplying ? 'Applying...' : hasApplied ? 'Applied ✅' : <><FaPaperPlane /> Apply to Join →</>}
+          </Button>
+        )}
       </div>
     </Card>
   )
