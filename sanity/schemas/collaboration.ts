@@ -128,6 +128,21 @@ export const collaborationSchema = defineType({
             title: 'Design Document',
             type: 'url',
         }),
+        defineField({
+            name: 'messages',
+            title: 'Chat Messages',
+            type: 'array',
+            of: [
+                defineArrayMember({
+                    type: 'object',
+                    fields: [
+                        { name: 'text', type: 'text', title: 'Message Text' },
+                        { name: 'user', type: 'reference', to: [{ type: 'user' }], title: 'Sender' },
+                        { name: 'timestamp', type: 'datetime', title: 'Timestamp', initialValue: () => new Date().toISOString() },
+                    ],
+                }),
+            ],
+        }),
     ],
     preview: {
         select: {
