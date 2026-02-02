@@ -18,19 +18,19 @@ export default async function ExplorePage({
 
 
 
-  // Build query with filters
-  let query = `*[_type == "post" && status == "approved"]`
+  // Build query with filters - keep all conditions inside the brackets
+  let filters = `_type == "post" && status == "approved"`
 
   if (tag) {
-    // Check if tags exists and contains the tag
-    query += ` && defined(tags) && $tag in tags`
+    // Case-insensitive tag matching
+    filters += ` && defined(tags) && count(tags[lower(@) == lower($tag)]) > 0`
   }
 
   if (search) {
-    query += ` && (title match $search || excerpt match $search)`
+    filters += ` && (title match $search || excerpt match $search)`
   }
 
-  query += ` | order(publishedAt desc) {
+  const query = `*[${filters}] | order(publishedAt desc) {
     _id,
     title,
     slug,
@@ -45,7 +45,8 @@ export default async function ExplorePage({
   }`
 
   // Fetch with fresh data (bypass CDN/Cache for search)
-  const queryParams: any = { tag: tag || '' } // define as any or specific type to avoid ts error
+  const queryParams: Record<string, string> = {}
+  if (tag) queryParams.tag = tag
   if (search) queryParams.search = `*${search}*`
 
   const posts = await client.fetch(query,

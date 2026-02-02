@@ -1,4 +1,5 @@
 import { SignUp } from '@clerk/nextjs'
+import { neobrutalAuth } from '@/lib/clerk-theme'
 import { Navigation } from '@/components/layout/Navigation'
 
 export default function SignUpPage() {
@@ -9,6 +10,7 @@ export default function SignUpPage() {
         <SignUp
           routing="path"
           path="/sign-up"
+          appearance={neobrutalAuth}
         />
       </div>
     </>

@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
             title,
             excerpt,
             content,
-            tags: tags || [],
+            tags: (tags || []).map((t: string) => t.toLowerCase()),
             slug: {
                 _type: 'slug',
                 current: title

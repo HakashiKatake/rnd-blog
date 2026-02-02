@@ -40,7 +40,7 @@ export async function PUT(
                 title,
                 excerpt,
                 content,
-                tags: tags || [],
+                tags: (tags || []).map((t: string) => t.toLowerCase()),
                 isEdited: true,
                 // We don't update slug to preserve SEO and links, usually
                 // But if title changes drastically, maybe? Let's keep slug stable for now.

@@ -42,6 +42,7 @@ export default function RootLayout({
       <html lang="en" suppressHydrationWarning>
         <body
           className={`${poppins.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased`}
+          suppressHydrationWarning
         >
           <ThemeProvider
             attribute="class"
