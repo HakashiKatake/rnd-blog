@@ -12,22 +12,22 @@ export default async function CollaboratePage() {
       <Navigation />
       <main className="min-h-screen bg-background">
         {/* Header */}
-        <section className="border-b-4 border-black bg-secondary/10 py-12">
+        <section className="border-b-4 border-black bg-secondary/10 py-8 sm:py-12">
           <div className="container mx-auto px-4">
-            <h1 className="font-head text-4xl lg:text-6xl font-bold mb-4">
+            <h1 className="font-head text-3xl sm:text-4xl lg:text-6xl font-bold mb-3 sm:mb-4">
               Build <span className="text-secondary-foreground">Together</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl">
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl">
               Don't build alone. Find active engineering projects looking for
               your skills, or post your own project to find collaborators.
             </p>
-            <div className="mt-8 flex gap-4">
-              <Link href="/collaborate/create">
-                <Button className="font-bold border-2 border-black hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-primary text-primary-foreground">
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <Link href="/collaborate/create" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto font-bold border-2 border-black hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-primary text-primary-foreground">
                   + Post a Project
                 </Button>
               </Link>
-              <Button variant="outline" className="font-bold border-2 border-black hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-card text-foreground">
+              <Button variant="outline" className="w-full sm:w-auto font-bold border-2 border-black hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-card text-foreground">
                 Browsing {collaborations.length} Projects
               </Button>
             </div>

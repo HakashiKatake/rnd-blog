@@ -22,48 +22,47 @@ export default async function Home() {
       <Navigation />
       <main className="min-h-screen bg-background">
         {/* Hero Section */}
-        <section className="container mx-auto px-4 py-16 lg:py-24">
+        <section className="container mx-auto px-4 py-12 lg:py-24">
           <div className="text-center max-w-4xl mx-auto">
             {/* New Badge */}
-            <Badge className="mb-6 inline-block bg-accent text-accent-foreground">
+            <Badge className="mb-6 inline-block bg-accent text-accent-foreground text-xs sm:text-sm">
               Beta Launch • Join the RnD Revolution ⚡
             </Badge>
 
             {/* Main Heading */}
-            <h1 className="font-head text-5xl lg:text-7xl font-bold mb-6">
+            <h1 className="font-head text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 leading-tight">
               Ignite Ideas.{" "}
               <span className="text-outlined text-primary">Build Together.</span>{" "}
               Prove Your Work.
             </h1>
 
             {/* Description */}
-            <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto px-2">
               The ONLY platform combining peer-curated research, authentic
               storytelling, verifiable portfolios, and collaborative
               community—built for Gen Z engineers.
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href={startBuildingHref}>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center px-4">
+              <Link href={startBuildingHref} className="w-full sm:w-auto">
                 <Button
-                  className="bg-primary text-primary-foreground border-brutal shadow-brutal hover:shadow-brutal-sm active:shadow-none transition-all"
+                  className="w-full sm:w-auto bg-primary text-primary-foreground border-brutal shadow-brutal hover:shadow-brutal-sm active:shadow-none transition-all"
                   size="lg"
                 >
                   Start Building ⚡
                 </Button>
               </Link>
-              <Link href="/explore">
+              <Link href="/explore" className="w-full sm:w-auto">
                 <Button
                   variant="outline"
-                  className="border-brutal shadow-brutal hover:shadow-brutal-sm active:shadow-none transition-all"
+                  className="w-full sm:w-auto border-brutal shadow-brutal hover:shadow-brutal-sm active:shadow-none transition-all"
                   size="lg"
                 >
                   Explore Projects
                 </Button>
               </Link>
             </div>
-
           </div>
         </section>
 

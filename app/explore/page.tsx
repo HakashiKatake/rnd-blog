@@ -77,12 +77,12 @@ export default async function ExplorePage({
       <Navigation />
       <main className="min-h-screen bg-background">
         {/* Header */}
-        <section className="border-b-4 border-black bg-primary/10 py-12">
+        <section className="border-b-4 border-black bg-primary/10 py-8 sm:py-12">
           <div className="container mx-auto px-4">
-            <h1 className="font-head text-4xl lg:text-6xl font-bold mb-4">
+            <h1 className="font-head text-3xl sm:text-4xl lg:text-6xl font-bold mb-3 sm:mb-4">
               Explore Research
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl">
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl">
               Discover peer-curated engineering projects, research, and
               innovations from students around the world.
             </p>

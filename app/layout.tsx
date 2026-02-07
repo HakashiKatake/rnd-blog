@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Poppins, Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from 'sonner';
 import { ThemeProvider } from "@/components/theme-provider"
+import { IntroAnimation } from "@/components/layout/IntroAnimation"
 import "./globals.css";
 
 const poppins = Poppins({
@@ -50,7 +51,9 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+            <IntroAnimation>
+              {children}
+            </IntroAnimation>
             <Toaster richColors closeButton />
           </ThemeProvider>
         </body>
