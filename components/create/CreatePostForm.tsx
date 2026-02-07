@@ -189,34 +189,36 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
     }
 
     setIsConvertingPdf(true)
-    const toastId = toast.loading('Extracting text from PDF...')
+    const toastId = toast.loading('Reading PDF...')
 
     try {
-      // 1. Extract text from PDF
-      const extractRes = await fetch('/api/ai/pdf-to-text', {
-        method: 'POST',
-        body: file,
-      })
+      // 1. Convert file to Base64
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const base64String = (reader.result as string).split(',')[1];
+          resolve(base64String);
+        };
+        reader.onerror = reject;
+      });
+      reader.readAsDataURL(file);
+      const pdfBase64 = await base64Promise;
 
-      if (!extractRes.ok) {
-        const err = await extractRes.json()
-        throw new Error(err.error || 'Failed to extract text')
-      }
+      toast.loading('Converting to post format (AI)...', { id: toastId })
 
-      const { text } = await extractRes.json()
-
-      toast.loading('Converting to post format...', { id: toastId })
-
-      // 2. Convert text to post
+      // 2. Send directly to AI conversion API (Gemini handles the PDF natively)
       const convertRes = await fetch('/api/ai/pdf-convert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({
+          pdfBase64,
+          fileName: file.name
+        }),
       })
 
       if (!convertRes.ok) {
-        const err = await convertRes.json()
-        throw new Error(err.error || 'Failed to convert PDF')
+        const err = await convertRes.json().catch(() => ({}))
+        throw new Error(err.error || 'AI conversion failed')
       }
 
       const postData = await convertRes.json()
@@ -407,25 +409,17 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
 
             {/* Content */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="font-semibold">
+              <div className="mb-4 text-left">
+                <label className="font-head font-bold text-lg mb-2 block">
                   Content * (Markdown){' '}
-                  <span className="text-muted-foreground text-sm">
+                  <span className="text-muted-foreground text-sm font-normal">
                     ({charCounts.content} chars, min 200)
                   </span>
                 </label>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 p-2 bg-muted/10 border-2 border-black rounded-t-xl gap-3">
-                  {/* File Input */}
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept="image/*,video/*"
-                    onChange={handleUpload}
-                  />
 
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2 bg-muted/5 border-2 border-black rounded-xl gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                   {/* Left: Editing Tools */}
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
@@ -470,7 +464,7 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                   </div>
 
                   {/* Right: Actions */}
-                  <div className="flex items-center gap-2 sm:border-l-2 sm:border-black/10 sm:pl-2">
+                  <div className="flex items-center gap-2 sm:pl-2 border-t sm:border-t-0 sm:border-l border-black/10 pt-2 sm:pt-0">
                     <button
                       type="button"
                       onClick={async () => {
@@ -510,7 +504,7 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                           setIsImproving(false);
                         }
                       }}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-bold bg-primary text-white border-2 border-primary hover:bg-primary/90 hover:border-black transition-all rounded-md shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-y-0 hover:translate-y-[2px]"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-bold bg-primary text-white border-2 border-black hover:bg-white hover:text-primary transition-all rounded-md shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-y-0 hover:translate-y-[2px]"
                     >
                       <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
                       {isImproving ? 'Improving...' : 'Fix Grammar'}
@@ -519,7 +513,7 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                     <button
                       type="button"
                       onClick={() => setShowPreview(!showPreview)}
-                      className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-bold border-2 border-black transition-all rounded-md ${showPreview ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'}`}
+                      className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-bold border-2 border-black transition-all rounded-md shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-y-0 hover:translate-y-[2px] ${showPreview ? 'bg-black text-white' : 'bg-transparent text-black hover:bg-black/5'}`}
                     >
                       {showPreview ? 'Hide Preview' : 'Show Preview'}
                     </button>

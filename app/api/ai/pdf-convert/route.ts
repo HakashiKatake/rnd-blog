@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
     try {
-        const { text } = await req.json();
+        const { pdfBase64, fileName } = await req.json();
 
-        if (!text) {
+        if (!pdfBase64) {
             return NextResponse.json(
-                { error: 'Text is required for conversion' },
+                { error: 'PDF data is required' },
                 { status: 400 }
             );
         }
@@ -22,8 +22,8 @@ export async function POST(req: NextRequest) {
 
         const prompt = `You are a professional technical blogger and research analyst.
         
-        I will provide you with the extracted text from a research paper or engineering project PDF.
-        Your task is to convert this text into a high-quality, engaging, and professional research post.
+        I have provided you with a research paper or engineering project PDF file named "${fileName || 'document.pdf'}".
+        Your task is to read this PDF and convert it into a high-quality, engaging, and professional research post.
         
         **REQUIRED OUTPUT FORMAT (JSON ONLY)**:
         Return a JSON object with exactly these fields:
@@ -38,12 +38,9 @@ export async function POST(req: NextRequest) {
         1. The content must be in valid Markdown.
         2. Ensure the tone is professional yet accessible.
         3. Do NOT include any text other than the JSON object itself.
-        4. If there are any diagrams or images mentioned in text, describe them or use placeholders if necessary, but focus on the textual content.
-        5. The excerpt must be under 200 characters.
-        6. The title must be under 100 characters.
-        
-        Extracted PDF Text:
-        ${text.substring(0, 15000)} // Limiting to first 15k chars for token safety`;
+        4. If there are any diagrams or images mentioned, describe them or use placeholders if necessary, but focus on the textual content.
+        5. The excerpt must be under 180 characters.
+        6. The title must be under 100 characters.`;
 
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
@@ -54,7 +51,21 @@ export async function POST(req: NextRequest) {
             body: JSON.stringify({
                 "model": "google/gemini-2.0-flash-001",
                 "messages": [
-                    { "role": "user", "content": prompt }
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": prompt
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": `data:application/pdf;base64,${pdfBase64}`
+                                }
+                            }
+                        ]
+                    }
                 ],
                 "response_format": { "type": "json_object" }
             })
@@ -66,20 +77,31 @@ export async function POST(req: NextRequest) {
         }
 
         const data = await response.json();
-        const resultString = data.choices[0].message.content;
+        let resultString = data.choices[0].message.content;
+
+        // Remove markdown code blocks if the AI included them
+        if (resultString.includes('```')) {
+            resultString = resultString.replace(/```json/g, '').replace(/```/g, '').trim();
+        }
 
         try {
             const result = JSON.parse(resultString);
             return NextResponse.json(result);
         } catch (parseError) {
             console.error('Failed to parse AI response as JSON:', resultString);
-            throw new Error('AI generated an invalid response format.');
+            return NextResponse.json(
+                {
+                    error: 'AI generated an invalid response format.',
+                    details: resultString.substring(0, 500)
+                },
+                { status: 500 }
+            );
         }
 
     } catch (error: any) {
         console.error('PDF Conversion Error:', error);
         return NextResponse.json(
-            { error: error.message || 'Failed to convert PDF text to post' },
+            { error: error.message || 'Failed to convert PDF to post' },
             { status: 500 }
         );
     }
