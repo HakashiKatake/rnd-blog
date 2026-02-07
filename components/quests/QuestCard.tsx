@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useUser } from '@clerk/nextjs'
 import { getImageUrl, urlFor } from '@/lib/sanity/client'
@@ -15,6 +16,7 @@ interface QuestCardProps {
   quest: {
     _id: string
     title: string
+    slug: { current: string }
     description?: string
     status: 'open' | 'active'
     difficulty: 'easy' | 'medium' | 'hard'
@@ -23,22 +25,44 @@ interface QuestCardProps {
     proposedBy: {
       name: string
       avatar?: any
+      clerkId?: string
     }
     participantCount: number
   }
 }
 
-export function QuestCard({ quest }: QuestCardProps) {
+export function QuestCard({ quest, isJoined }: QuestCardProps & { isJoined: boolean }) {
   const { user } = useUser()
+  const router = useRouter()
   const [isJoining, setIsJoining] = useState(false)
-  const [hasJoined, setHasJoined] = useState(false) // Optimistic UI
 
-  const handleJoin = async () => {
+  // Author Rule: If I am the author, I am implicitly joined (Dashboard State)
+  // The Data Consistency (creation of participant doc) happens when I enter the workspace
+  const isAuthor = user?.id === quest.proposedBy?.clerkId
+  const effectiveIsJoined = isJoined || isAuthor
+
+  const [hasJoinedOptimistic, setHasJoinedOptimistic] = useState(effectiveIsJoined)
+
+  const handleAction = async () => {
+    console.log('[QuestCard] Action Triggered', {
+      questId: quest._id,
+      user: user?.id,
+      isJoined: effectiveIsJoined
+    })
+
+    // 1. Navigation: Enter Quest (for already joined users AND authors)
+    if (hasJoinedOptimistic) {
+      router.push(`/quests/${quest.slug.current}`)
+      return
+    }
+
+    // 2. Auth: Redirect to Sign In (for guests)
     if (!user) {
       toast.error('Please sign in to join a quest')
       return
     }
 
+    // 3. Mutation: Join Quest (for new participants)
     if (!confirm('Are you sure you want to join this quest?')) return
 
     setIsJoining(true)
@@ -49,10 +73,14 @@ export function QuestCard({ quest }: QuestCardProps) {
         body: JSON.stringify({ questId: quest._id })
       })
 
-      if (!res.ok) throw new Error('Failed to join quest')
+      const data = await res.json()
+      console.log('[QuestCard] Join Response', data)
 
-      setHasJoined(true)
-      toast.success('You have joined the quest! 🚀')
+      if (!res.ok) throw new Error(data.error || 'Failed to join quest')
+
+      setHasJoinedOptimistic(true)
+      toast.success('You have joined the quest! Redirecting...')
+      router.push(`/quests/${quest.slug.current}`)
     } catch (error) {
       console.error(error)
       toast.error('Something went wrong. Please try again.')
@@ -105,7 +133,7 @@ export function QuestCard({ quest }: QuestCardProps) {
           </div>
           <div>
             <p className="text-xs text-muted-foreground flex items-center gap-1"><FaUsers /> Participants</p>
-            <p className="font-bold">{quest.participantCount + (hasJoined ? 1 : 0)}</p>
+            <p className="font-bold">{quest.participantCount + (hasJoinedOptimistic && !isJoined ? 1 : 0)}</p>
           </div>
           {quest.daysRemaining && (
             <div>
@@ -117,17 +145,17 @@ export function QuestCard({ quest }: QuestCardProps) {
 
         {/* Proposed By */}
         <div className="flex items-center gap-2 mb-4">
-          {quest.proposedBy.avatar && getImageUrl(quest.proposedBy.avatar) && (
+          {quest.proposedBy?.avatar && getImageUrl(quest.proposedBy.avatar) ? (
             <Image
               src={getImageUrl(quest.proposedBy.avatar)!}
-              alt={quest.proposedBy.name}
+              alt={quest.proposedBy?.name || 'Unknown'}
               width={24}
               height={24}
               className="rounded-full border border-black"
             />
-          )}
+          ) : null}
           <p className="text-xs text-muted-foreground">
-            by <span className="font-semibold">{quest.proposedBy.name}</span>
+            by <span className="font-semibold">{quest.proposedBy?.name || 'Mystery Sparker'}</span>
           </p>
         </div>
       </div>
@@ -135,11 +163,20 @@ export function QuestCard({ quest }: QuestCardProps) {
       {/* Action */}
       <div className="p-6 pt-0">
         <Button
-          onClick={handleJoin}
-          disabled={isJoining || hasJoined || quest.status !== 'open'}
-          className="w-full bg-primary text-primary-foreground border-brutal shadow-brutal hover:shadow-brutal-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          onClick={handleAction}
+          disabled={isJoining}
+          className={`w-full border-brutal shadow-brutal hover:shadow-brutal-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${hasJoinedOptimistic
+            ? 'bg-accent text-accent-foreground'
+            : 'bg-primary text-primary-foreground'
+            }`}
         >
-          {isJoining ? 'Joining...' : hasJoined ? 'Joined 🚀' : quest.status === 'open' ? <><FaRocket /> Join Quest</> : 'View Details'}
+          {isJoining ? (
+            'Joining...'
+          ) : hasJoinedOptimistic ? (
+            <>Enter Quest 🚀</>
+          ) : (
+            <><FaRocket /> Join Quest</>
+          )}
         </Button>
       </div>
     </Card>

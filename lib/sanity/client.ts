@@ -59,7 +59,6 @@ export const queries = {
     slug,
     content,
     excerpt,
-    excerpt,
     thumbnail,
     coverImageUrl,
     tags,
@@ -77,7 +76,7 @@ export const queries = {
     "quest": quest->{title, slug}
   }`,
 
-  // Get all active quests
+  // Get active quests (Updated to count participants safely)
   getActiveQuests: `*[_type == "quest" && status in ["open", "active"]] | order(_createdAt desc) {
     _id,
     title,
@@ -87,8 +86,32 @@ export const queries = {
     difficulty,
     rewardPoints,
     daysRemaining,
-    "proposedBy": proposedBy->{name, avatar},
-    "participantCount": count(participants)
+    "proposedBy": proposedBy->{name, avatar, clerkId},
+    "participantCount": count(*[_type == "questParticipant" && quest._ref == ^._id])
+  }`,
+
+  // Get IDs of quests the user has joined (For O(1) state lookup)
+  getUserQuestIds: (clerkId: string) => `*[_type == "questParticipant" && user->clerkId == "${clerkId}"].quest._ref`,
+
+  // Get single quest by slug with detailed participant info
+  getQuestBySlug: (slug: string) => `*[_type == "quest" && slug.current == "${slug}"][0] {
+    _id,
+    title,
+    slug,
+    description,
+    status,
+    difficulty,
+    rewardPoints,
+    daysRemaining,
+    "proposedBy": proposedBy->{name, avatar, clerkId},
+    "participants": *[_type == "questParticipant" && quest._ref == ^._id] {
+      _id,
+      joinedAt,
+      status,
+      "user": user->{name, avatar, clerkId}
+    },
+    timeline,
+    resources
   }`,
 
   // Get user by Clerk ID
