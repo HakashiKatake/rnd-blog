@@ -102,14 +102,14 @@ function PostCardContent({ post, tierEmojis, tagColors }: { post: any, tierEmoji
 
   return (
     <>
-      <div className="p-6 flex flex-col flex-1">
+      <div className="p-4 sm:p-6 flex flex-col flex-1">
         {/* Tags */}
         {post.tags && post.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex flex-wrap gap-2 mb-2 sm:mb-3">
             {post.tags.slice(0, 2).map((tag: string) => (
               <Badge
                 key={tag}
-                className={`${tagColors[tag] || 'bg-muted'} text-xs`}
+                className={`${tagColors[tag] || 'bg-muted'} text-[10px] sm:text-xs`}
               >
                 {tag.toUpperCase().replace('-', '/')}
               </Badge>
@@ -118,18 +118,18 @@ function PostCardContent({ post, tierEmojis, tagColors }: { post: any, tierEmoji
         )}
 
         {/* Title */}
-        <div className="flex justify-between items-start mb-4 gap-2">
-          <h3 className="font-head text-xl font-bold line-clamp-2 group-hover:text-primary transition-colors flex-1">
+        <div className="flex justify-between items-start mb-3 sm:mb-4 gap-2">
+          <h3 className="font-head text-lg sm:text-xl font-bold line-clamp-2 group-hover:text-primary transition-colors flex-1 leading-tight">
             {post.title}
           </h3>
-          <div onClick={(e) => e.preventDefault()}>
+          <div onClick={(e) => e.preventDefault()} className="shrink-0 scale-90 sm:scale-100">
             <BookmarkButton postId={post._id} isBookmarked={post.isBookmarked} />
           </div>
         </div>
 
         {/* Cover Image (Under Title) */}
         {coverImage && (
-          <div className="relative w-full aspect-video rounded-md overflow-hidden border-2 border-black mb-4">
+          <div className="relative w-full aspect-video rounded-md overflow-hidden border-2 border-black mb-3 sm:mb-4 bg-muted/20">
             <Image
               src={coverImage}
               alt={post.title}
@@ -141,43 +141,44 @@ function PostCardContent({ post, tierEmojis, tagColors }: { post: any, tierEmoji
 
         {/* Excerpt */}
         {post.excerpt && (
-          <p className="text-muted-foreground text-sm mb-4 line-clamp-3 flex-1">
+          <p className="text-muted-foreground text-xs sm:text-sm mb-4 line-clamp-3 flex-1 leading-relaxed">
             {post.excerpt}
           </p>
         )}
 
         {/* Footer */}
         {/* Author and Stats */}
-        <div className="flex items-center justify-between mt-auto">
+        <div className="flex items-center justify-between mt-auto pt-3 border-t-2 border-black/5">
           {/* Author */}
           <div className="flex items-center gap-2">
             {post.author.avatar && getImageUrl(post.author.avatar) && (
-              <Image
-                src={getImageUrl(post.author.avatar)!}
-                alt={post.author.name}
-                width={32}
-                height={32}
-                className="rounded-full border border-black"
-              />
+              <div className="relative w-6 h-6 sm:w-8 sm:h-8 shrink-0">
+                <Image
+                  src={getImageUrl(post.author.avatar)!}
+                  alt={post.author.name}
+                  fill
+                  className="rounded-full border border-black object-cover"
+                />
+              </div>
             )}
-            <div>
-              <p className="text-sm font-semibold">{post.author.name}</p>
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-muted-foreground">
-                  Tier {post.author.tier}
+            <div className="min-w-0">
+              <p className="text-sm font-semibold truncate max-w-[80px] sm:max-w-none">{post.author.name}</p>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <p className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
+                  T{post.author.tier}
                 </p>
-                {post.isEdited && <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground font-medium">(edited)</span>}
+                {post.isEdited && <span className="text-[8px] sm:text-[10px] bg-muted px-1 py-0.5 rounded text-muted-foreground font-medium uppercase">(edited)</span>}
               </div>
             </div>
           </div>
 
           {/* Stats */}
-          <div className="flex items-center gap-3 font-medium text-sm">
+          <div className="flex items-center gap-2 sm:gap-3 font-medium text-[10px] sm:text-sm">
             <span className="flex items-center gap-1 text-primary">
-              <FaBolt /> {post.sparkCount || 0}
+              <FaBolt className="w-3 h-3 sm:w-4 sm:h-4" /> {post.sparkCount || 0}
             </span>
-            <span className="flex items-center gap-1">
-              <FaEye /> {post.viewCount || 0}
+            <span className="flex items-center gap-1 text-muted-foreground">
+              <FaEye className="w-3 h-3 sm:w-4 sm:h-4" /> {post.viewCount || 0}
             </span>
           </div>
         </div>

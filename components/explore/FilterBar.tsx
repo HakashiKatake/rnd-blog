@@ -58,39 +58,40 @@ export function FilterBar({
     <section className="sticky top-16 z-40 bg-background border-b-2 border-black py-4">
       <div className="container mx-auto px-4">
         {/* Search Bar */}
-        <form onSubmit={handleSearch} className="mb-4">
-          <div className="flex gap-2 max-w-md">
+        <form onSubmit={handleSearch} className="mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 max-w-2xl">
             <Input
               type="text"
               placeholder="Search posts..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1"
+              className="flex-1 border-brutal"
             />
             <Button
               type="submit"
-              className="bg-primary text-primary-foreground border-brutal shadow-brutal hover:shadow-brutal-sm flex items-center gap-2"
+              className="bg-primary text-primary-foreground border-brutal shadow-brutal hover:shadow-brutal-sm flex items-center justify-center gap-2 whitespace-nowrap"
             >
-              <FaMagnifyingGlass /> Search
+              <FaMagnifyingGlass /> <span className="sm:inline">Search</span>
             </Button>
           </div>
         </form>
 
         {/* Tag Filters */}
-        <div className="flex flex-wrap gap-2">
-          {TAGS.map((tag) => (
-            <button
-              key={tag.value}
-              onClick={() => handleTagClick(tag.value)}
-              className={`px-4 py-2 border-2 border-black font-semibold transition-all ${
-                currentTag === tag.value || (!currentTag && tag.value === '')
-                  ? 'bg-primary text-primary-foreground shadow-brutal'
-                  : 'bg-background hover:shadow-brutal-sm'
-              }`}
-            >
-              {tag.label}
-            </button>
-          ))}
+        <div className="relative">
+          <div className="flex overflow-x-auto pb-2 -mb-2 no-scrollbar gap-2 scroll-smooth">
+            {TAGS.map((tag) => (
+              <button
+                key={tag.value}
+                onClick={() => handleTagClick(tag.value)}
+                className={`flex-none px-4 py-2 border-2 border-black font-semibold transition-all text-sm whitespace-nowrap ${currentTag === tag.value || (!currentTag && tag.value === '')
+                    ? 'bg-primary text-primary-foreground shadow-brutal'
+                    : 'bg-background hover:shadow-brutal-sm'
+                  }`}
+              >
+                {tag.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Active Filters */}

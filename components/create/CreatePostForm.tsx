@@ -8,7 +8,7 @@ import { tomorrow } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { Button } from '@/components/retroui/Button'
 import { Input } from '@/components/retroui/Input'
 import { toast } from 'sonner'
-import { Code, Sparkles, Image as ImageIcon, Loader2, UploadCloud } from 'lucide-react'
+import { Code, Sparkles, Image as ImageIcon, Loader2, UploadCloud, FileText } from 'lucide-react'
 import Image from 'next/image'
 import {
   Dialog,
@@ -88,8 +88,10 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
   const [isImproving, setIsImproving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [isUploadingCover, setIsUploadingCover] = useState(false)
+  const [isConvertingPdf, setIsConvertingPdf] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
+  const pdfInputRef = useRef<HTMLInputElement>(null)
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -174,6 +176,73 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
     } finally {
       setIsUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.type !== 'application/pdf') {
+      toast.error('Please upload a PDF file')
+      return
+    }
+
+    setIsConvertingPdf(true)
+    const toastId = toast.loading('Extracting text from PDF...')
+
+    try {
+      // 1. Extract text from PDF
+      const extractRes = await fetch('/api/ai/pdf-to-text', {
+        method: 'POST',
+        body: file,
+      })
+
+      if (!extractRes.ok) {
+        const err = await extractRes.json()
+        throw new Error(err.error || 'Failed to extract text')
+      }
+
+      const { text } = await extractRes.json()
+
+      toast.loading('Converting to post format...', { id: toastId })
+
+      // 2. Convert text to post
+      const convertRes = await fetch('/api/ai/pdf-convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+
+      if (!convertRes.ok) {
+        const err = await convertRes.json()
+        throw new Error(err.error || 'Failed to convert PDF')
+      }
+
+      const postData = await convertRes.json()
+
+      // 3. Update form data
+      setFormData({
+        ...formData,
+        title: postData.title || formData.title,
+        excerpt: postData.excerpt || formData.excerpt,
+        content: postData.content || formData.content,
+        tags: postData.tags || formData.tags,
+      })
+
+      setCharCounts({
+        title: postData.title?.length || 0,
+        excerpt: postData.excerpt?.length || 0,
+        content: postData.content?.length || 0,
+      })
+
+      toast.success('PDF successfully converted to post!', { id: toastId })
+    } catch (err: any) {
+      console.error(err)
+      toast.error(err.message || 'Failed to process PDF', { id: toastId })
+    } finally {
+      setIsConvertingPdf(false)
+      if (pdfInputRef.current) pdfInputRef.current.value = ''
     }
   }
 
@@ -345,7 +414,7 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                     ({charCounts.content} chars, min 200)
                   </span>
                 </label>
-                <div className="flex flex-wrap items-center justify-between mb-3 p-2 bg-muted/20 border-2 border-black rounded-t-md gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 p-2 bg-muted/10 border-2 border-black rounded-t-xl gap-3">
                   {/* File Input */}
                   <input
                     type="file"
@@ -356,7 +425,7 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                   />
 
                   {/* Left: Editing Tools */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
@@ -365,7 +434,25 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                       title="Upload Image or Video"
                     >
                       {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-                      Media
+                      <span className="sm:inline">Media</span>
+                    </button>
+
+                    <input
+                      type="file"
+                      ref={pdfInputRef}
+                      className="hidden"
+                      accept="application/pdf"
+                      onChange={handlePdfUpload}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => pdfInputRef.current?.click()}
+                      disabled={isConvertingPdf}
+                      className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold border-2 border-transparent hover:border-black hover:bg-white transition-all rounded-md"
+                      title="Import content from PDF"
+                    >
+                      {isConvertingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+                      <span className="sm:inline">Import PDF</span>
                     </button>
 
                     <button
@@ -378,12 +465,12 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                       className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold border-2 border-transparent hover:border-black hover:bg-white transition-all rounded-md"
                       title="Insert Code Block"
                     >
-                      <Code className="w-4 h-4" /> Code
+                      <Code className="w-4 h-4" /> <span className="sm:inline">Code</span>
                     </button>
                   </div>
 
                   {/* Right: Actions */}
-                  <div className="flex items-center gap-2 border-l-2 border-black/10 pl-2">
+                  <div className="flex items-center gap-2 sm:border-l-2 sm:border-black/10 sm:pl-2">
                     <button
                       type="button"
                       onClick={async () => {
@@ -423,16 +510,16 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                           setIsImproving(false);
                         }
                       }}
-                      className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold bg-primary text-white border-2 border-primary hover:bg-primary/90 hover:border-black transition-all rounded-md shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-y-0 hover:translate-y-[2px]"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-bold bg-primary text-white border-2 border-primary hover:bg-primary/90 hover:border-black transition-all rounded-md shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-y-0 hover:translate-y-[2px]"
                     >
-                      <Sparkles className="w-4 h-4" />
+                      <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
                       {isImproving ? 'Improving...' : 'Fix Grammar'}
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setShowPreview(!showPreview)}
-                      className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold border-2 border-black transition-all rounded-md ${showPreview ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'}`}
+                      className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-bold border-2 border-black transition-all rounded-md ${showPreview ? 'bg-black text-white' : 'bg-transparent hover:bg-black/5'}`}
                     >
                       {showPreview ? 'Hide Preview' : 'Show Preview'}
                     </button>

@@ -52,43 +52,48 @@ export default async function PostPage({
             )}
 
             {/* Title */}
-            <div className="flex justify-between items-start gap-4 mb-6">
-              <h1 className="font-head text-4xl lg:text-5xl font-bold">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
+              <h1 className="font-head text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
                 {post.title}
               </h1>
-              <BookmarkButton postId={post._id} />
+              <div className="shrink-0 self-end sm:self-start">
+                <BookmarkButton postId={post._id} />
+              </div>
             </div>
 
             {/* Author & Meta */}
-            <div className="flex items-center justify-between border-y-2 border-black py-4">
+            <div className="flex flex-col gap-4 border-y-2 border-black py-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 {post.author.avatar && getImageUrl(post.author.avatar) && (
-                  <Image
-                    src={getImageUrl(post.author.avatar)!}
-                    alt={post.author.name}
-                    width={48}
-                    height={48}
-                    className="rounded-full border-2 border-black"
-                  />
+                  <div className="relative w-10 h-10 sm:w-12 sm:h-12 shrink-0">
+                    <Image
+                      src={getImageUrl(post.author.avatar)!}
+                      alt={post.author.name}
+                      fill
+                      className="rounded-full border-2 border-black object-cover"
+                    />
+                  </div>
                 )}
-                <div>
-                  <p className="font-head font-bold">{post.author.name}</p>
-                  <p className="text-sm text-muted-foreground">
+                <div className="min-w-0">
+                  <p className="font-head font-bold text-base sm:text-lg truncate">{post.author.name}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Tier {post.author.tier} {tierEmojis[post.author.tier]} •{' '}
-                    {new Date(post.publishedAt).toLocaleDateString()}
+                    <span className="whitespace-nowrap">{new Date(post.publishedAt).toLocaleDateString()}</span>
                   </p>
                 </div>
               </div>
 
               {/* Stats */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center justify-between sm:justify-end gap-4 pt-2 sm:pt-0 border-t border-black/5 sm:border-0">
+                <div className="flex items-center gap-4">
+                  <span className="flex items-center gap-1.5 font-bold">
+                    ⚡ {post.sparkCount}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    👁 {post.viewCount}
+                  </span>
+                </div>
                 <EditAction authorClerkId={post.author.clerkId} slug={post.slug.current} />
-                <span className="flex items-center gap-1">
-                  ⚡ {post.sparkCount}
-                </span>
-                <span className="flex items-center gap-1 text-muted-foreground">
-                  👁 {post.viewCount}
-                </span>
               </div>
             </div>
 
@@ -189,11 +194,19 @@ export default async function PostPage({
 
           {/* Engagement Actions */}
           <div className="border-y-2 border-black py-6 mb-8">
-            <div className="flex flex-wrap items-center gap-4">
-              <SparkButton postId={post._id} initialSparkCount={post.sparkCount} />
-              <CommentButton postId={post._id} />
-              <ShareButton title={post.title} slug={slug} />
-              <DownloadPdfButton post={post} />
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-3 sm:gap-4">
+              <div className="contents sm:block">
+                <SparkButton postId={post._id} initialSparkCount={post.sparkCount} />
+              </div>
+              <div className="contents sm:block">
+                <CommentButton postId={post._id} />
+              </div>
+              <div className="contents sm:block">
+                <ShareButton title={post.title} slug={slug} />
+              </div>
+              <div className="contents sm:block">
+                <DownloadPdfButton post={post} />
+              </div>
             </div>
           </div>
 
@@ -202,24 +215,25 @@ export default async function PostPage({
 
           {/* Author Bio */}
           {post.author.bio && (
-            <div className="border-brutal p-6 bg-card mb-8">
-              <h3 className="font-head text-xl font-bold mb-3">About the Author</h3>
-              <div className="flex items-start gap-4">
+            <div className="border-brutal p-5 sm:p-6 bg-card mb-8">
+              <h3 className="font-head text-xl font-bold mb-4">About the Author</h3>
+              <div className="flex flex-col sm:flex-row items-start gap-4">
                 {post.author.avatar && getImageUrl(post.author.avatar) && (
-                  <Image
-                    src={getImageUrl(post.author.avatar)!}
-                    alt={post.author.name}
-                    width={64}
-                    height={64}
-                    className="rounded-full border-2 border-black"
-                  />
+                  <div className="relative w-12 h-12 sm:w-16 sm:h-16 shrink-0">
+                    <Image
+                      src={getImageUrl(post.author.avatar)!}
+                      alt={post.author.name}
+                      fill
+                      className="rounded-full border-2 border-black object-cover"
+                    />
+                  </div>
                 )}
-                <div>
-                  <p className="font-bold mb-1">{post.author.name}</p>
-                  <p className="text-sm text-muted-foreground mb-2">
+                <div className="min-w-0">
+                  <p className="font-bold text-lg mb-1">{post.author.name}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-3">
                     {tierNames[post.author.tier]} {tierEmojis[post.author.tier]}
                   </p>
-                  <p className="text-sm">{post.author.bio}</p>
+                  <p className="text-sm leading-relaxed">{post.author.bio}</p>
                 </div>
               </div>
             </div>
@@ -227,15 +241,15 @@ export default async function PostPage({
 
           {/* Quest Link */}
           {post.quest && (
-            <div className="border-brutal-thick p-6 bg-accent/10 mb-8">
-              <p className="text-sm text-muted-foreground mb-2">
+            <div className="border-brutal-thick p-5 sm:p-6 bg-accent/10 mb-8">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-2 font-bold uppercase tracking-wider">
                 Part of the Quest:
               </p>
-              <h3 className="font-head text-xl font-bold">
+              <h3 className="font-head text-xl sm:text-2xl font-bold mb-4">
                 {post.quest.title}
               </h3>
               <Button
-                className="mt-3 bg-accent text-accent-foreground border-brutal shadow-brutal hover:shadow-brutal-sm"
+                className="w-full sm:w-auto bg-accent text-accent-foreground border-brutal shadow-brutal hover:shadow-brutal-sm"
               >
                 View Quest →
               </Button>

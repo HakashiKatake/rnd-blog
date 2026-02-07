@@ -14,16 +14,16 @@ interface ProfileContentProps {
 export function ProfileContent({ user, posts, collections, isOwnProfile }: ProfileContentProps) {
     return (
         <Tabs defaultValue="posts" className="w-full">
-            <TabsList className="flex border-b-2 border-black mb-8">
+            <TabsList className="flex flex-wrap border-b-2 border-black mb-8">
                 <TabsTrigger
                     value="posts"
-                    className="flex items-center gap-2 px-6 py-3 font-bold border-r-2 border-black/10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all hover:bg-primary/10"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-6 py-3 font-bold border-r-2 border-black/10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all hover:bg-primary/10 text-sm sm:text-base"
                 >
-                    <FaPenNib /> Published Posts ({posts.length})
+                    <FaPenNib /> <span className="hidden xs:inline">Published</span> Posts ({posts.length})
                 </TabsTrigger>
                 <TabsTrigger
                     value="collections"
-                    className="flex items-center gap-2 px-6 py-3 font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all hover:bg-primary/10"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-6 py-3 font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all hover:bg-primary/10 text-sm sm:text-base"
                 >
                     <FaLayerGroup /> Collections ({collections.length})
                 </TabsTrigger>
