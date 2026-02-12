@@ -1,16 +1,29 @@
-import dynamic from 'next/dynamic'
-import 'tldraw/tldraw.css'
+import dynamic from "next/dynamic";
+import "tldraw/tldraw.css";
 
 // Dynamically import Tldraw with SSR disabled to avoid production issues with browser-only APIs
-const Tldraw = dynamic(async () => (await import('tldraw')).Tldraw, {
-    ssr: false,
-    loading: () => <div className="w-full h-full flex items-center justify-center bg-gray-50 font-head font-bold">Loading Canvas...</div>
-})
+const Tldraw = dynamic(async () => (await import("tldraw")).Tldraw, {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex flex-col items-center justify-center bg-white gap-3">
+      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF6B35] to-[#e85d2c] border-2 border-black shadow-[3px_3px_0_0_rgba(0,0,0,1)] flex items-center justify-center animate-pulse">
+        <span className="text-white text-xl">🎨</span>
+      </div>
+      <p className="font-head font-bold text-sm text-gray-600">
+        Loading Canvas...
+      </p>
+    </div>
+  ),
+});
 
-export function WorkspaceBoard() {
-    return (
-        <div className="w-full h-full border-2 border-black rounded-lg overflow-hidden bg-white shadow-brutal">
-            <Tldraw persistenceKey="workspace-canvas" />
-        </div>
-    )
+interface WorkspaceBoardProps {
+  collaborationId: string;
+}
+
+export function WorkspaceBoard({ collaborationId }: WorkspaceBoardProps) {
+  return (
+    <div className="w-full h-full border-2 border-black rounded-lg overflow-hidden bg-white shadow-[3px_3px_0_0_rgba(0,0,0,1)]">
+      <Tldraw persistenceKey={`workspace-${collaborationId}`} />
+    </div>
+  );
 }
