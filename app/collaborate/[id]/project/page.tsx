@@ -9,7 +9,9 @@ export default async function WorkspacePage({
   params: { id: string };
 }) {
   const { id } = await params;
-  const collaboration = await client.fetch(queries.getCollaborationById(id));
+  const collaboration = await client
+    .withConfig({ useCdn: false })
+    .fetch(queries.getCollaborationById(id));
 
   if (!collaboration) {
     return notFound();

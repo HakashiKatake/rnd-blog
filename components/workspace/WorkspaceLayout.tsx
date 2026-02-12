@@ -53,10 +53,22 @@ export function WorkspaceLayout({ collaboration }: WorkspaceLayoutProps) {
   const [showTeam, setShowTeam] = useState(true);
 
   const status = statusConfig[collaboration.status] || statusConfig.open;
-  const allMembers = [
+
+  // Combine team members and accepted applicants
+  const acceptedApplicants = (collaboration.applicants || [])
+    .filter((a: any) => a.status === "accepted")
+    .map((a: any) => a.user);
+
+  const uniqueMembers = new Map();
+  [
     collaboration.postedBy,
     ...(collaboration.teamMembers || []),
-  ];
+    ...acceptedApplicants,
+  ].forEach((member) => {
+    if (member?._id) uniqueMembers.set(member._id, member);
+  });
+
+  const allMembers = Array.from(uniqueMembers.values());
   const memberCount = allMembers.length;
 
   return (
@@ -248,7 +260,9 @@ export function WorkspaceLayout({ collaboration }: WorkspaceLayoutProps) {
                         className="overflow-hidden"
                       >
                         <TeamSidebar
-                          members={collaboration.teamMembers}
+                          members={allMembers.filter(
+                            (m) => m._id !== collaboration.postedBy._id,
+                          )}
                           postedBy={collaboration.postedBy}
                           projectInfo={{
                             description: collaboration.description,

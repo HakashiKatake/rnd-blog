@@ -147,6 +147,11 @@ export const queries = {
     commitment,
     "postedBy": postedBy->{_id, name, avatar, tier, clerkId},
     "teamMembers": teamMembers[]->{_id, clerkId},
+    "applicants": applicants[] {
+      _key,
+      status,
+      "user": user->{clerkId}
+    },
     "applicantCount": count(applicants)
   }`,
 
@@ -184,6 +189,10 @@ export const queries = {
     },
     "postedBy": postedBy->{_id, name, avatar, tier, clerkId},
     "teamMembers": teamMembers[]->{_id, name, avatar, tier, university, clerkId},
-    "applicants": applicants
+    "applicants": applicants[] {
+        _key,
+        status,
+        "user": user->{_id, name, avatar, tier, university, clerkId}
+    }
   }`,
 };
