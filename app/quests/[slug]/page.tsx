@@ -119,8 +119,8 @@ export default async function QuestWorkspace({
       pulse: true,
     },
     pending: {
-      color: "bg-gray-300",
-      icon: <FaHourglassHalf className="text-gray-500 text-xs" />,
+      color: "bg-muted",
+      icon: <FaHourglassHalf className="text-muted-foreground text-xs" />,
       pulse: false,
     },
   };
@@ -164,7 +164,7 @@ export default async function QuestWorkspace({
       {/* ═══════════════════════════════════════ */}
       {/* ZONE 1: QUEST CONTEXT HEADER            */}
       {/* ═══════════════════════════════════════ */}
-      <section className="w-full border-b-2 border-black bg-background relative overflow-hidden">
+      <section className="w-full border-b-2 border-border bg-background relative overflow-hidden">
         {/* Subtle top accent bar */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-success" />
 
@@ -172,7 +172,7 @@ export default async function QuestWorkspace({
           {/* Back Link */}
           <Link
             href="/quests"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-black mb-8 text-sm font-medium transition-colors group"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 text-sm font-medium transition-colors group"
           >
             <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" />
             Back to Quests
@@ -192,7 +192,7 @@ export default async function QuestWorkspace({
           </div>
 
           {/* Title */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-head font-bold text-black mb-8 leading-tight tracking-tight">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-head font-bold text-foreground mb-8 leading-tight tracking-tight">
             {quest.title}
           </h1>
 
@@ -207,11 +207,10 @@ export default async function QuestWorkspace({
             </div>
             {quest.daysRemaining != null && (
               <div
-                className={`flex items-center gap-2.5 rounded-lg px-4 py-2 border ${
-                  quest.daysRemaining <= 3
-                    ? "bg-destructive/10 border-destructive/20 text-destructive"
-                    : "bg-muted/50 border-black/10"
-                }`}
+                className={`flex items-center gap-2.5 rounded-lg px-4 py-2 border ${quest.daysRemaining <= 3
+                  ? "bg-destructive/10 border-destructive/20 text-destructive"
+                  : "bg-muted/50 border-border/10"
+                  }`}
               >
                 <FaClock
                   className={
@@ -229,7 +228,7 @@ export default async function QuestWorkspace({
                 </span>
               </div>
             )}
-            <div className="flex items-center gap-2.5 bg-muted/50 border border-black/10 rounded-lg px-4 py-2">
+            <div className="flex items-center gap-2.5 bg-muted/50 border border-border/10 rounded-lg px-4 py-2">
               <FaUsers className="text-muted-foreground" />
               <span className="text-muted-foreground">Participants</span>
               <span className="font-bold">{participantCount}</span>
@@ -249,7 +248,7 @@ export default async function QuestWorkspace({
             <h2 className="text-2xl font-head font-bold mb-5 flex items-center gap-2.5">
               <FaMapMarkerAlt className="text-primary" /> Mission Brief
             </h2>
-            <Card className="border-2 border-black rounded-lg shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-card overflow-hidden w-full block">
+            <Card className="border-brutal rounded-lg shadow-brutal bg-card overflow-hidden w-full block">
               <div className="flex">
                 {/* Accent side stripe */}
                 <div className="w-1.5 bg-gradient-to-b from-primary to-accent shrink-0" />
@@ -282,12 +281,12 @@ export default async function QuestWorkspace({
 
             <div className="relative pl-8">
               {/* Vertical line */}
-              <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-gradient-to-b from-success via-gray-200 to-gray-200" />
+              <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-gradient-to-b from-success via-muted to-muted" />
 
               <div className="space-y-0">
                 {/* ── Start Node ── */}
                 <div className="relative pb-8">
-                  <div className="absolute -left-8 top-0.5 w-6 h-6 rounded-full bg-success border-2 border-white ring-2 ring-success flex items-center justify-center shadow-sm">
+                  <div className="absolute -left-8 top-0.5 w-6 h-6 rounded-full bg-success border-2 border-background ring-2 ring-success flex items-center justify-center shadow-sm">
                     <FaCheckCircle className="text-white text-xs" />
                   </div>
                   <div className="ml-2">
@@ -315,7 +314,7 @@ export default async function QuestWorkspace({
                       >
                         {/* Node */}
                         <div
-                          className={`absolute -left-8 top-0.5 w-6 h-6 rounded-full ${msConfig.color} border-2 border-white ring-2 ${msConfig.pulse ? "ring-primary/40 animate-pulse" : `ring-${milestone.status === "completed" ? "success" : "gray-200"}`} flex items-center justify-center shadow-sm`}
+                          className={`absolute -left-8 top-0.5 w-6 h-6 rounded-full ${msConfig.color} border-2 border-background ring-2 ${msConfig.pulse ? "ring-primary/40 animate-pulse" : `ring-${milestone.status === "completed" ? "success" : "muted"}`} flex items-center justify-center shadow-sm`}
                         >
                           {msConfig.icon}
                         </div>
@@ -327,13 +326,12 @@ export default async function QuestWorkspace({
                               {milestone.title}
                             </h3>
                             <span
-                              className={`text-[11px] font-mono px-2 py-0.5 rounded-full border ${
-                                milestone.status === "completed"
-                                  ? "bg-success/10 text-success border-success/20"
-                                  : milestone.status === "in-progress"
-                                    ? "bg-primary/10 text-primary border-primary/20"
-                                    : "bg-gray-100 text-muted-foreground border-gray-200"
-                              }`}
+                              className={`text-[11px] font-mono px-2 py-0.5 rounded-full border ${milestone.status === "completed"
+                                ? "bg-success/10 text-success border-success/20"
+                                : milestone.status === "in-progress"
+                                  ? "bg-primary/10 text-primary border-primary/20"
+                                  : "bg-muted text-muted-foreground border-border"
+                                }`}
                             >
                               {milestone.status === "in-progress"
                                 ? "IN PROGRESS"
@@ -353,8 +351,8 @@ export default async function QuestWorkspace({
                 ) : (
                   /* No milestones placeholder */
                   <div className="relative pb-8">
-                    <div className="absolute -left-8 top-0.5 w-6 h-6 rounded-full bg-gray-200 border-2 border-white ring-2 ring-gray-100 flex items-center justify-center">
-                      <FaHourglassHalf className="text-gray-400 text-xs" />
+                    <div className="absolute -left-8 top-0.5 w-6 h-6 rounded-full bg-muted border-2 border-background ring-2 ring-muted flex items-center justify-center">
+                      <FaHourglassHalf className="text-muted-foreground text-xs" />
                     </div>
                     <div className="ml-2 py-4">
                       <p className="text-sm font-mono text-muted-foreground tracking-wide">
@@ -369,8 +367,8 @@ export default async function QuestWorkspace({
 
                 {/* ── End Node ── */}
                 <div className="relative">
-                  <div className="absolute -left-8 top-0.5 w-6 h-6 rounded-full bg-transparent border-2 border-gray-300 flex items-center justify-center">
-                    <FaTrophy className="text-gray-400 text-xs" />
+                  <div className="absolute -left-8 top-0.5 w-6 h-6 rounded-full bg-transparent border-2 border-border flex items-center justify-center">
+                    <FaTrophy className="text-muted-foreground text-xs" />
                   </div>
                   <div className="ml-2">
                     <h3 className="font-bold text-lg text-muted-foreground">
@@ -409,7 +407,7 @@ export default async function QuestWorkspace({
                     <FaCheckCircle className="text-[10px]" /> Active Agent
                   </Badge>
                 ) : (
-                  <Badge className="bg-gray-200 text-gray-600 text-xs">
+                  <Badge className="bg-muted text-muted-foreground text-xs">
                     Observer
                   </Badge>
                 )}
@@ -428,7 +426,7 @@ export default async function QuestWorkspace({
               )}
 
               {/* Divider */}
-              <div className="border-t border-dashed border-gray-200" />
+              <div className="border-t border-dashed border-border" />
 
               {/* Squad */}
               <div>
@@ -451,16 +449,16 @@ export default async function QuestWorkspace({
                             alt={p.user.name}
                             width={32}
                             height={32}
-                            className="rounded-full border border-black bg-white"
+                            className="rounded-full border border-border bg-card"
                           />
                         ) : (
-                          <div className="w-8 h-8 rounded-full border border-black bg-gray-100 flex items-center justify-center text-xs font-bold">
+                          <div className="w-8 h-8 rounded-full border border-border bg-muted flex items-center justify-center text-xs font-bold">
                             {p.user?.name?.[0] || "?"}
                           </div>
                         )}
                         {/* Status dot */}
                         <div
-                          className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${participantStatusDot[p.status] || "bg-gray-300"}`}
+                          className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card ${participantStatusDot[p.status] || "bg-muted"}`}
                         />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -492,8 +490,8 @@ export default async function QuestWorkspace({
           </Card>
 
           {/* ── Quest Details Card ── */}
-          <Card className="border-2 border-black rounded-lg shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-card overflow-hidden w-full block">
-            <div className="p-5 border-b-2 border-black bg-muted/20">
+          <Card className="border-brutal rounded-lg shadow-brutal bg-card overflow-hidden w-full block">
+            <div className="p-5 border-b-2 border-border bg-muted/20">
               <h3 className="font-head font-bold text-lg flex items-center gap-2">
                 <FaShieldAlt className="text-accent" /> Quest Details
               </h3>
@@ -561,8 +559,8 @@ export default async function QuestWorkspace({
           </Card>
 
           {/* ── Resources Section ── */}
-          <Card className="border-2 border-black rounded-lg shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-card overflow-hidden w-full block">
-            <div className="p-5 border-b-2 border-black bg-muted/20">
+          <Card className="border-brutal rounded-lg shadow-brutal bg-card overflow-hidden w-full block">
+            <div className="p-5 border-b-2 border-border bg-muted/20">
               <h3 className="font-head font-bold text-lg flex items-center gap-2">
                 <FaBook className="text-accent" /> Resources
               </h3>
@@ -576,9 +574,9 @@ export default async function QuestWorkspace({
                       href={resource.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 rounded-lg border border-black/10 bg-muted/5 hover:bg-primary/5 hover:border-primary/30 transition-all group"
+                      className="flex items-center gap-3 p-3 rounded-lg border border-border/10 bg-muted/5 hover:bg-primary/5 hover:border-primary/30 transition-all group"
                     >
-                      <div className="w-9 h-9 rounded-md bg-accent/15 flex items-center justify-center border border-black/10 group-hover:bg-accent/25 transition-colors shrink-0">
+                      <div className="w-9 h-9 rounded-md bg-accent/15 flex items-center justify-center border border-border/10 group-hover:bg-accent/25 transition-colors shrink-0">
                         <FaLink className="text-accent text-sm" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -605,10 +603,10 @@ export default async function QuestWorkspace({
           </Card>
 
           {/* ── Proposed By (Author Card) ── */}
-          <Card className="border-2 border-black rounded-lg shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-card overflow-hidden w-full block">
+          <Card className="border-brutal rounded-lg shadow-brutal bg-card overflow-hidden w-full block">
             <div className="p-5 flex items-center gap-4">
               {quest.proposedBy?.avatar ? (
-                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-black shrink-0 shadow-sm">
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-border shrink-0 shadow-sm">
                   <Image
                     src={getImageUrl(quest.proposedBy.avatar)!}
                     width={48}
@@ -618,7 +616,7 @@ export default async function QuestWorkspace({
                   />
                 </div>
               ) : (
-                <div className="w-12 h-12 rounded-full border-2 border-black bg-primary/10 flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-full border-2 border-border bg-primary/10 flex items-center justify-center shrink-0">
                   <FaUserAstronaut className="text-primary text-lg" />
                 </div>
               )}

@@ -100,12 +100,13 @@ export function WorkspaceChat({
           const lastServerTime =
             serverMessages.length > 0
               ? new Date(
-                  serverMessages[serverMessages.length - 1].timestamp,
-                ).getTime()
+                serverMessages[serverMessages.length - 1].timestamp,
+              ).getTime()
               : 0;
 
           const pendingMessages = prev.filter((m) => {
-            return m._localOptimistic;
+            // Only keep optimistic messages that are NOT in the server list yet
+            return m._localOptimistic && !serverMessages.find((sm: any) => sm._key === m._key);
           });
 
           return [...serverMessages, ...pendingMessages];
@@ -130,6 +131,7 @@ export function WorkspaceChat({
       _localOptimistic: true,
       text: newMessage,
       timestamp: new Date().toISOString(),
+      _key: crypto.randomUUID().replace(/-/g, "").slice(0, 12),
       user: {
         name: user.fullName,
         avatar: user.imageUrl,
@@ -145,7 +147,11 @@ export function WorkspaceChat({
       const res = await fetch("/api/collaborate/message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ collaborationId, text: tempMsg.text }),
+        body: JSON.stringify({
+          collaborationId,
+          text: tempMsg.text,
+          messageKey: tempMsg._key
+        }),
       });
 
       if (!res.ok) {
@@ -227,21 +233,21 @@ export function WorkspaceChat({
   let lastDate = "";
 
   return (
-    <div className="h-full flex flex-col border-2 border-black rounded-lg bg-white shadow-[3px_3px_0_0_rgba(0,0,0,1)] overflow-hidden">
+    <div className="h-full flex flex-col border-2 border-border rounded-lg bg-card shadow-brutal overflow-hidden">
       {/* Chat header */}
-      <div className="px-4 py-3 border-b-2 border-black bg-gradient-to-r from-[#FFF8F3] to-[#FFF0E8] flex items-center justify-between flex-shrink-0">
+      <div className="px-4 py-3 border-b-2 border-border bg-muted/20 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-[#FF6B35] border-2 border-black flex items-center justify-center">
+          <div className="w-7 h-7 rounded-md bg-[#FF6B35] border-2 border-border flex items-center justify-center">
             <FaComments className="text-white text-xs" />
           </div>
           <h3 className="font-head font-black text-sm">Team Chat</h3>
-          <span className="text-[10px] text-muted-foreground bg-gray-100 px-1.5 py-0.5 rounded-full border">
+          <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full border border-border">
             {messages?.length || 0} msgs
           </span>
         </div>
         <button
           onClick={onToggleExpand}
-          className="p-1.5 hover:bg-black/10 rounded-md transition-colors border border-transparent hover:border-black/20"
+          className="p-1.5 hover:bg-muted rounded-md transition-colors border border-transparent hover:border-border"
           title={isExpanded ? "Collapse chat" : "Expand chat"}
         >
           {isExpanded ? (
@@ -298,7 +304,7 @@ export function WorkspaceChat({
                 >
                   {/* Avatar for other users */}
                   {!isMe && showAvatar && (
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#1A2947] to-[#2d4570] flex items-center justify-center text-white text-[10px] font-bold mr-2 flex-shrink-0 mt-1 border border-black/20">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#1A2947] to-[#2d4570] flex items-center justify-center text-white text-[10px] font-bold mr-2 flex-shrink-0 mt-1 border border-border">
                       {getInitials(msg.user?.name || "")}
                     </div>
                   )}
@@ -311,25 +317,24 @@ export function WorkspaceChat({
                   >
                     {/* Sender name */}
                     {!isMe && showAvatar && (
-                      <div className="text-[11px] font-bold text-[#1A2947] mb-0.5 ml-1">
+                      <div className="text-[11px] font-bold text-foreground mb-0.5 ml-1">
                         {msg.user?.name || "Unknown"}
                       </div>
                     )}
 
                     {/* Message bubble */}
                     <div
-                      className={`rounded-xl px-3 py-2 relative min-w-[80px] ${
-                        isMe
-                          ? "bg-[#FF6B35] text-white rounded-br-sm"
-                          : "bg-[#F3F4F6] text-gray-900 border border-gray-200 rounded-bl-sm"
-                      } ${isOptimistic ? "opacity-70" : ""}`}
+                      className={`rounded-xl px-3 py-2 relative min-w-[80px] ${isMe
+                        ? "bg-[#FF6B35] text-white rounded-br-sm"
+                        : "bg-muted text-foreground border border-border rounded-bl-sm"
+                        } ${isOptimistic ? "opacity-70" : ""}`}
                     >
                       {isEditing ? (
                         <div className="flex flex-col gap-2 min-w-[200px]">
                           <input
                             value={editText}
                             onChange={(e) => setEditText(e.target.value)}
-                            className="bg-white text-black border-2 border-black/20 outline-none w-full p-2 rounded text-sm"
+                            className="bg-card text-foreground border-2 border-border outline-none w-full p-2 rounded text-sm"
                             autoFocus
                             onKeyDown={(e) => {
                               if (e.key === "Enter") handleEdit();
@@ -346,7 +351,7 @@ export function WorkspaceChat({
                             </button>
                             <button
                               onClick={handleEdit}
-                              className="text-xs font-bold bg-white text-black px-3 py-1 rounded-md shadow hover:bg-gray-100 transition-colors"
+                              className="text-xs font-bold bg-card text-foreground px-3 py-1 rounded-md shadow hover:bg-muted transition-colors"
                             >
                               Save
                             </button>
@@ -360,7 +365,7 @@ export function WorkspaceChat({
 
                       <div className="flex items-center justify-end gap-1 mt-0.5">
                         <span
-                          className={`text-[10px] ${isMe ? "text-white/60" : "text-gray-400"}`}
+                          className={`text-[10px] ${isMe ? "text-white/60" : "text-muted-foreground"}`}
                         >
                           {msg.timestamp
                             ? formatMessageTime(msg.timestamp)
@@ -377,7 +382,7 @@ export function WorkspaceChat({
                       {isMe && !isEditing && !isOptimistic && (
                         <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <DropdownMenu>
-                            <DropdownMenuTrigger className="p-1 rounded-full focus:outline-none hover:bg-black/10">
+                            <DropdownMenuTrigger className="p-1 rounded-full focus:outline-none hover:bg-muted">
                               <FaEllipsisVertical className="text-[10px] text-white/70" />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
@@ -404,10 +409,10 @@ export function WorkspaceChat({
           })
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center py-10">
-            <div className="w-16 h-16 rounded-2xl bg-[#FFF0E8] border-2 border-[#FF6B35]/30 flex items-center justify-center mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-muted/20 border-2 border-[#FF6B35]/30 flex items-center justify-center mb-4">
               <FaComments className="text-2xl text-[#FF6B35]" />
             </div>
-            <p className="font-head font-bold text-sm text-gray-700">
+            <p className="font-head font-bold text-sm text-foreground">
               No messages yet
             </p>
             <p className="text-xs text-muted-foreground mt-1">
@@ -418,7 +423,7 @@ export function WorkspaceChat({
       </div>
 
       {/* Input area */}
-      <div className="px-3 py-3 border-t-2 border-black bg-[#FFF8F3] flex gap-2 flex-shrink-0">
+      <div className="px-3 py-3 border-t-2 border-border bg-muted/20 flex gap-2 flex-shrink-0">
         <input
           ref={inputRef}
           type="text"
@@ -426,12 +431,12 @@ export function WorkspaceChat({
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
           placeholder="Type a message..."
-          className="flex-1 border-2 border-black rounded-lg px-3 py-2 text-sm focus:outline-none focus:shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-all bg-white placeholder:text-gray-400"
+          className="flex-1 border-2 border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:shadow-brutal transition-all bg-card text-foreground placeholder:text-muted-foreground"
         />
         <Button
           onClick={handleSend}
           disabled={isSending || !newMessage.trim()}
-          className="border-2 border-black bg-[#FF6B35] text-white shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50 px-3"
+          className="border-2 border-border bg-[#FF6B35] text-white shadow-brutal hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50 px-3"
         >
           <FaPaperPlane className="text-sm" />
         </Button>

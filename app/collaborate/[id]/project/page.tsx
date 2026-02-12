@@ -20,7 +20,7 @@ export default async function WorkspacePage({
   return (
     <>
       <Navigation />
-      <main className="h-[calc(100vh-80px)] overflow-hidden bg-[#FFF8F3]">
+      <main className="h-[calc(100vh-80px)] overflow-hidden bg-background">
         <WorkspaceLayout collaboration={collaboration} />
       </main>
     </>

@@ -9,9 +9,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { collaborationId, text } = await req.json();
+    const { collaborationId, text, messageKey } = await req.json();
 
-    if (!collaborationId || !text) {
+    if (!collaborationId || !text || !messageKey) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 },
@@ -30,9 +30,6 @@ export async function POST(req: Request) {
     }
 
     // Add message to the collaboration document
-    // IMPORTANT: _key is required for Sanity array items
-    const messageKey = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
-
     await client
       .patch(collaborationId)
       .setIfMissing({ messages: [] })

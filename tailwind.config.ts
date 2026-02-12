@@ -32,25 +32,25 @@ const config: Config = {
             addUtilities({
                 '.border-brutal': {
                     'border-width': '2px',
-                    'border-color': '#000000',
+                    'border-color': 'var(--brutal-border)',
                     'border-style': 'solid',
                 },
                 '.border-brutal-thick': {
                     'border-width': '4px',
-                    'border-color': '#000000',
+                    'border-color': 'var(--brutal-border)',
                     'border-style': 'solid',
                 },
                 '.shadow-brutal': {
-                    'box-shadow': '4px 4px 0 0 rgba(0, 0, 0, 1)',
+                    'box-shadow': '4px 4px 0 0 var(--brutal-shadow)',
                 },
                 '.shadow-brutal-sm': {
-                    'box-shadow': '2px 2px 0 0 rgba(0, 0, 0, 1)',
+                    'box-shadow': '2px 2px 0 0 var(--brutal-shadow)',
                 },
                 '.shadow-brutal-lg': {
-                    'box-shadow': '6px 6px 0 0 rgba(0, 0, 0, 1)',
+                    'box-shadow': '6px 6px 0 0 var(--brutal-shadow)',
                 },
                 '.shadow-brutal-xl': {
-                    'box-shadow': '8px 8px 0 0 rgba(0, 0, 0, 1)',
+                    'box-shadow': '8px 8px 0 0 var(--brutal-shadow)',
                 },
                 '.text-outlined': {
                     'color': 'transparent',

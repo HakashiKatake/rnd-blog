@@ -35,20 +35,20 @@ export function TeamSidebar({
   const [tab, setTab] = useState<"team" | "project">("team");
 
   return (
-    <div className="border-2 border-t-0 border-black rounded-b-lg bg-white overflow-hidden">
+    <div className="border-2 border-t-0 border-border rounded-b-lg bg-card overflow-hidden">
       {/* Tabs */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex border-b border-border">
         <button
           onClick={() => setTab("team")}
           className={`flex-1 py-2 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors
-                        ${tab === "team" ? "bg-[#FFF0E8] text-[#FF6B35] border-b-2 border-[#FF6B35]" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`}
+                        ${tab === "team" ? "bg-primary/20 text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
         >
           <FaUsers className="text-[10px]" /> Members
         </button>
         <button
           onClick={() => setTab("project")}
           className={`flex-1 py-2 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors
-                        ${tab === "project" ? "bg-[#FFF0E8] text-[#FF6B35] border-b-2 border-[#FF6B35]" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`}
+                        ${tab === "project" ? "bg-primary/20 text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
         >
           <FaInfo className="text-[10px]" /> Project Info
         </button>
@@ -58,7 +58,7 @@ export function TeamSidebar({
         {tab === "team" ? (
           <div className="space-y-1.5">
             {/* Owner */}
-            <div className="flex items-center gap-2.5 p-2 rounded-lg bg-[#FFF8F3] border border-[#FF6B35]/20">
+            <div className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/20 border border-primary/20">
               <div className="relative flex-shrink-0">
                 {postedBy?.avatar ? (
                   <Image
@@ -66,10 +66,10 @@ export function TeamSidebar({
                     alt={postedBy.name}
                     width={32}
                     height={32}
-                    className="rounded-full border-2 border-black w-8 h-8 object-cover"
+                    className="rounded-full border-2 border-border w-8 h-8 object-cover"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF6B35] to-[#e85d2c] border-2 border-black flex items-center justify-center text-white text-[10px] font-bold">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF6B35] to-[#e85d2c] border-2 border-border flex items-center justify-center text-white text-[10px] font-bold">
                     {postedBy?.name?.charAt(0) || "P"}
                   </div>
                 )}
@@ -92,7 +92,7 @@ export function TeamSidebar({
             {members?.map((member) => (
               <div
                 key={member._id}
-                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-muted transition-colors"
               >
                 <div className="relative flex-shrink-0">
                   {member.avatar ? (
@@ -101,10 +101,10 @@ export function TeamSidebar({
                       alt={member.name}
                       width={32}
                       height={32}
-                      className="rounded-full border border-black w-8 h-8 object-cover"
+                      className="rounded-full border border-border w-8 h-8 object-cover"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1A2947] to-[#2d4570] border border-black flex items-center justify-center text-white text-[10px] font-bold">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1A2947] to-[#2d4570] border border-border flex items-center justify-center text-white text-[10px] font-bold">
                       {member.name?.charAt(0) || "?"}
                     </div>
                   )}
@@ -133,7 +133,7 @@ export function TeamSidebar({
                 <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider mb-1">
                   About
                 </p>
-                <p className="text-xs text-gray-700 leading-relaxed line-clamp-3">
+                <p className="text-xs text-foreground leading-relaxed line-clamp-3">
                   {projectInfo.description}
                 </p>
               </div>
@@ -141,7 +141,7 @@ export function TeamSidebar({
 
             <div className="grid grid-cols-2 gap-2">
               {projectInfo?.duration && (
-                <div className="flex items-center gap-1.5 p-2 bg-gray-50 rounded-lg border">
+                <div className="flex items-center gap-1.5 p-2 bg-muted/20 rounded-lg border border-border">
                   <FaClock className="text-[10px] text-[#FF6B35]" />
                   <div>
                     <p className="text-[9px] text-muted-foreground uppercase font-semibold">
@@ -154,7 +154,7 @@ export function TeamSidebar({
                 </div>
               )}
               {projectInfo?.commitment && (
-                <div className="flex items-center gap-1.5 p-2 bg-gray-50 rounded-lg border">
+                <div className="flex items-center gap-1.5 p-2 bg-muted/20 rounded-lg border border-border">
                   <FaBolt className="text-[10px] text-[#FF6B35]" />
                   <div>
                     <p className="text-[9px] text-muted-foreground uppercase font-semibold">
@@ -175,7 +175,7 @@ export function TeamSidebar({
                   href={projectInfo.githubRepo}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-[11px] font-bold text-[#1A2947] hover:text-[#FF6B35] transition-colors"
+                  className="flex items-center gap-1 text-[11px] font-bold text-foreground hover:text-primary transition-colors"
                 >
                   <FaGithub /> GitHub
                 </a>
@@ -185,7 +185,7 @@ export function TeamSidebar({
                   href={projectInfo.designDoc}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-[11px] font-bold text-[#1A2947] hover:text-[#FF6B35] transition-colors"
+                  className="flex items-center gap-1 text-[11px] font-bold text-foreground hover:text-primary transition-colors"
                 >
                   <FaFileLines /> Design Doc
                 </a>

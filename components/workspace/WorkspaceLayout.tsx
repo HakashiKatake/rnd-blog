@@ -74,11 +74,11 @@ export function WorkspaceLayout({ collaboration }: WorkspaceLayoutProps) {
   return (
     <div className="flex flex-col h-full">
       {/* ── Workspace Header ─────────────────────────────── */}
-      <div className="flex-shrink-0 border-b-2 border-black bg-white px-5 py-3">
+      <div className="flex-shrink-0 border-b-2 border-border bg-card px-5 py-3">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           {/* Left: Project info */}
           <div className="flex items-center gap-4 min-w-0">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#FF6B35] to-[#e85d2c] border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] flex items-center justify-center text-white font-black text-lg flex-shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#FF6B35] to-[#e85d2c] border-2 border-border shadow-brutal flex items-center justify-center text-white font-black text-lg flex-shrink-0">
               {collaboration.projectName?.charAt(0) || "P"}
             </div>
             <div className="min-w-0">
@@ -121,7 +121,7 @@ export function WorkspaceLayout({ collaboration }: WorkspaceLayoutProps) {
                 href={collaboration.githubRepo}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1A2947] text-white border-2 border-black rounded-md shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-xs font-bold"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1A2947] text-white border-2 border-border rounded-md shadow-brutal hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-xs font-bold"
               >
                 <FaGithub className="text-sm" /> Repo
               </a>
@@ -131,7 +131,7 @@ export function WorkspaceLayout({ collaboration }: WorkspaceLayoutProps) {
                 href={collaboration.designDoc}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-[#1A2947] border-2 border-black rounded-md shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-xs font-bold"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-card text-[#1A2947] border-2 border-border rounded-md shadow-brutal hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-xs font-bold"
               >
                 <FaFileLines className="text-sm" /> Docs
               </a>
@@ -143,7 +143,7 @@ export function WorkspaceLayout({ collaboration }: WorkspaceLayoutProps) {
                 {allMembers.slice(0, 4).map((member: any, i: number) => (
                   <div
                     key={member._id || i}
-                    className="w-8 h-8 rounded-full border-2 border-white shadow-sm overflow-hidden bg-gradient-to-br from-orange-200 to-orange-300 flex items-center justify-center"
+                    className="w-8 h-8 rounded-full border-2 border-background shadow-sm overflow-hidden bg-gradient-to-br from-orange-200 to-orange-300 flex items-center justify-center"
                     title={member.name}
                   >
                     {member.avatar ? (
@@ -162,7 +162,7 @@ export function WorkspaceLayout({ collaboration }: WorkspaceLayoutProps) {
                   </div>
                 ))}
                 {memberCount > 4 && (
-                  <div className="w-8 h-8 rounded-full border-2 border-white shadow-sm bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600">
+                  <div className="w-8 h-8 rounded-full border-2 border-background shadow-sm bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground">
                     +{memberCount - 4}
                   </div>
                 )}
@@ -180,22 +180,20 @@ export function WorkspaceLayout({ collaboration }: WorkspaceLayoutProps) {
         <button
           onClick={() => setActivePanel("chat")}
           className={`flex-1 py-2 font-head font-bold rounded-md flex items-center justify-center gap-2 transition-all text-sm
-                        ${
-                          activePanel === "chat"
-                            ? "bg-[#FF6B35] text-white border-2 border-black shadow-[1px_1px_0_0_rgba(0,0,0,1)]"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
+                        ${activePanel === "chat"
+              ? "bg-primary text-primary-foreground border-2 border-border shadow-[1px_1px_0_0_rgba(0,0,0,1)]"
+              : "text-muted-foreground hover:text-foreground"
+            }`}
         >
           <FaComments className="text-xs" /> Chat & Team
         </button>
         <button
           onClick={() => setActivePanel("board")}
           className={`flex-1 py-2 font-head font-bold rounded-md flex items-center justify-center gap-2 transition-all text-sm
-                        ${
-                          activePanel === "board"
-                            ? "bg-[#FF6B35] text-white border-2 border-black shadow-[1px_1px_0_0_rgba(0,0,0,1)]"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
+                        ${activePanel === "board"
+              ? "bg-primary text-primary-foreground border-2 border-border shadow-[1px_1px_0_0_rgba(0,0,0,1)]"
+              : "text-muted-foreground hover:text-foreground"
+            }`}
         >
           <FaPaintbrush className="text-xs" /> Whiteboard
         </button>
@@ -217,9 +215,8 @@ export function WorkspaceLayout({ collaboration }: WorkspaceLayoutProps) {
               }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className={`flex flex-col gap-2 h-full ${
-                isChatExpanded ? "flex-1" : "w-full md:w-[320px] lg:w-[360px]"
-              } ${activePanel !== "chat" ? "hidden md:flex" : "flex"} flex-shrink-0`}
+              className={`flex flex-col gap-2 h-full ${isChatExpanded ? "flex-1" : "w-full md:w-[320px] lg:w-[360px]"
+                } ${activePanel !== "chat" ? "hidden md:flex" : "flex"} flex-shrink-0`}
             >
               {/* Chat */}
               <div
@@ -238,7 +235,7 @@ export function WorkspaceLayout({ collaboration }: WorkspaceLayoutProps) {
                 <div className="flex-shrink-0">
                   <button
                     onClick={() => setShowTeam(!showTeam)}
-                    className="w-full flex items-center justify-between px-3 py-2 bg-white border-2 border-black rounded-t-lg font-head font-bold text-sm hover:bg-gray-50 transition-colors"
+                    className="w-full flex items-center justify-between px-3 py-2 bg-card border-2 border-border rounded-t-lg font-head font-bold text-sm hover:bg-muted transition-colors"
                   >
                     <span className="flex items-center gap-2">
                       <FaUsers className="text-[#FF6B35]" />
@@ -290,15 +287,14 @@ export function WorkspaceLayout({ collaboration }: WorkspaceLayoutProps) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className={`flex-1 h-full relative ml-2 ${
-                activePanel !== "board" ? "hidden md:block" : "block"
-              }`}
+              className={`flex-1 h-full relative ml-2 ${activePanel !== "board" ? "hidden md:block" : "block"
+                }`}
             >
               {/* Board controls overlay */}
               <div className="absolute top-3 right-3 z-50 hidden md:flex items-center gap-2">
                 <button
                   onClick={() => setIsBoardExpanded(!isBoardExpanded)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] rounded-md hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all font-bold text-xs"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-card border-2 border-border shadow-brutal rounded-md hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all font-bold text-xs"
                 >
                   {isBoardExpanded ? (
                     <>

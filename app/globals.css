@@ -89,6 +89,10 @@
   /* Skeleton Colors */
   --skeleton-base: rgba(0, 0, 0, 0.1);
   --skeleton-highlight: rgba(0, 0, 0, 0.05);
+
+  /* NeoBrutalism Adaptive */
+  --brutal-border: #000000;
+  --brutal-shadow: rgba(0, 0, 0, 1);
 }
 
 .dark {
@@ -130,6 +134,10 @@
   /* Skeleton Colors (Dark) */
   --skeleton-base: rgba(255, 255, 255, 0.1);
   --skeleton-highlight: rgba(255, 255, 255, 0.15);
+
+  /* NeoBrutalism Adaptive (Dark) */
+  --brutal-border: #30363D;
+  --brutal-shadow: rgba(0, 0, 0, 0.5);
 }
 
 @layer base {
