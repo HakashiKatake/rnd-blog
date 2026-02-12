@@ -14,6 +14,7 @@ const navLinks = [
   { href: '/quests', label: 'Quests', icon: <FaScroll /> },
   { href: '/collaborate', label: 'Collaborate', icon: <FaHandshake /> },
   { href: '/leaderboard', label: 'Leaderboard', icon: <FaTrophy /> },
+  { href: '/admin', label: 'Admin', icon: <FaUser /> },
 ]
 
 export function Navigation() {
