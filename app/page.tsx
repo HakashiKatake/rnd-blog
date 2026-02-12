@@ -1,12 +1,18 @@
-import { Button } from "@/components/retroui/Button";
-import { Card } from "@/components/retroui/Card";
-import { Badge } from "@/components/retroui/Badge";
 import { Navigation } from "@/components/layout/Navigation";
-import Link from "next/link";
-
+import { Hero } from "@/components/landing/Hero";
+import { BentoGrid, BentoCard } from "@/components/landing/BentoGrid";
 import { auth } from "@clerk/nextjs/server";
 import { getOrCreateUser } from "@/lib/auth/user";
-import { redirect } from "next/navigation";
+import {
+  FileText,
+  Rocket,
+  Trophy,
+  Briefcase,
+  Users,
+  Layers,
+  Lightbulb,
+  Globe,
+} from "lucide-react";
 
 export default async function Home() {
   const { userId } = await auth();
@@ -15,159 +21,149 @@ export default async function Home() {
     await getOrCreateUser();
   }
 
-  const startBuildingHref = userId ? "/explore" : "/sign-up";
+  const features = [
+    {
+      Icon: FileText,
+      name: "Peer-Curated Research",
+      description:
+        "Three-tier moderation system ensuring top-tier quality. Automated vetting, club review, and community voting.",
+      href: "/explore",
+      cta: "Read Research",
+      className: "md:col-span-2",
+      background: (
+        <div className="absolute right-0 top-0 h-[300px] w-[600px] opacity-10 [mask-image:linear-gradient(to_bottom,white,transparent)] bg-[radial-gradient(#000000_1px,transparent_1px)] [background-size:16px_16px]" />
+      ),
+    },
+    {
+      Icon: Rocket,
+      name: "Quest System",
+      description:
+        "Turn 'What If' ideas into collaborative projects. Build with peers.",
+      href: "/quests",
+      cta: "Start a Quest",
+      className: "md:col-span-1",
+      background: (
+        <div className="absolute right-0 top-0 h-[200px] w-[200px] opacity-10 bg-gradient-to-tr from-orange-400 to-red-500 blur-3xl rounded-full" />
+      ),
+    },
+    {
+      Icon: Trophy,
+      name: "Gamification",
+      description: "Earn points, unlock badges, and climb the leaderboard.",
+      href: "/leaderboard",
+      cta: "View Leaderboard",
+      className: "md:col-span-1",
+      background: (
+        <div className="absolute -right-10 -top-10 h-[300px] w-[300px] opacity-5 bg-yellow-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20" />
+      ),
+    },
+    {
+      Icon: Briefcase,
+      name: "Portfolio Export",
+      description:
+        "One-click PDF with your top projects and verified badges. Perfect for job applications.",
+      href: "/profile",
+      cta: "Build Portfolio",
+      className: "md:col-span-2",
+      background: (
+        <div className="absolute right-0 bottom-0 h-[300px] w-[600px] opacity-5 [mask-image:linear-gradient(to_top,white,transparent)] bg-[radial-gradient(#000000_1px,transparent_1px)] [background-size:16px_16px]" />
+      ),
+    },
+  ];
 
   return (
     <>
       <Navigation />
-      <main className="min-h-screen bg-background">
-        {/* Hero Section */}
-        <section className="container mx-auto px-4 py-12 lg:py-24">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* New Badge */}
-            <Badge className="mb-6 inline-block bg-accent text-accent-foreground text-xs sm:text-sm">
-              Beta Launch • Join the RnD Revolution ⚡
-            </Badge>
-
-            {/* Main Heading */}
-            <h1 className="font-head text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-              Ignite Ideas.{" "}
-              <span className="text-outlined text-primary">Build Together.</span>{" "}
-              Prove Your Work.
-            </h1>
-
-            {/* Description */}
-            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto px-2">
-              The ONLY platform combining peer-curated research, authentic
-              storytelling, verifiable portfolios, and collaborative
-              community—built for Gen Z engineers.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center px-4">
-              <Link href={startBuildingHref} className="w-full sm:w-auto">
-                <Button
-                  className="w-full sm:w-auto bg-primary text-primary-foreground border-brutal shadow-brutal hover:shadow-brutal-sm active:shadow-none transition-all"
-                  size="lg"
-                >
-                  Start Building ⚡
-                </Button>
-              </Link>
-              <Link href="/explore" className="w-full sm:w-auto">
-                <Button
-                  variant="outline"
-                  className="w-full sm:w-auto border-brutal shadow-brutal hover:shadow-brutal-sm active:shadow-none transition-all"
-                  size="lg"
-                >
-                  Explore Projects
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </section>
+      <main className="min-h-screen bg-[#fafafa]">
+        <Hero />
 
         {/* Features Grid - Bento Style */}
-        <section className="container mx-auto px-4 py-16">
-          <h2 className="font-head text-3xl lg:text-5xl font-bold text-center mb-12">
-            Why <span className="text-primary">SPARK</span>?
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Feature 1 - Large Card */}
-            <Card className="md:col-span-2 border-brutal p-8 hover:shadow-brutal transition-all">
-              <div className="flex items-start gap-4">
-                <div className="text-4xl">🎯</div>
-                <div>
-                  <h3 className="font-head text-2xl font-bold mb-3">
-                    Peer-Curated Research
-                  </h3>
-                  <p className="text-muted-foreground">
-                    Three-tier moderation system ensures quality. Automated
-                    vetting, RnD club review, and community voting—all 100%
-                    transparent.
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Feature 2 */}
-            <Card className="border-brutal p-8 hover:shadow-brutal transition-all">
-              <div className="text-4xl mb-4">🚀</div>
-              <h3 className="font-head text-2xl font-bold mb-3">
-                Quest System
-              </h3>
-              <p className="text-muted-foreground">
-                "What If..." quests turn ideas into collaborative projects.
-                Build with peers, earn points, grow together.
-              </p>
-            </Card>
-
-            {/* Feature 3 */}
-            <Card className="border-brutal p-8 hover:shadow-brutal transition-all">
-              <div className="text-4xl mb-4">🏆</div>
-              <h3 className="font-head text-2xl font-bold mb-3">
-                Gamification
-              </h3>
-              <p className="text-muted-foreground">
-                4-tier progression system. Earn points, unlock badges, export
-                your portfolio PDF—proof that recruiters can't ignore.
-              </p>
-            </Card>
-
-            {/* Feature 4 - Wide Card */}
-            <Card className="md:col-span-2 border-brutal p-8 bg-primary/5 hover:shadow-brutal transition-all">
-              <div className="flex items-start gap-4">
-                <div className="text-4xl">💼</div>
-                <div>
-                  <h3 className="font-head text-2xl font-bold mb-3">
-                    Portfolio Export
-                  </h3>
-                  <p className="text-muted-foreground">
-                    One-click PDF with your top projects, skills, and verified
-                    RnD Club badge. Attach to job applications. Stand out from
-                    the crowd.
-                  </p>
-                </div>
-              </div>
-            </Card>
+        <section className="container mx-auto px-4 py-20">
+          <div className="text-center mb-16">
+            <h2 className="font-head text-4xl lg:text-6xl font-bold mb-4">
+              Why{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
+                SPARK
+              </span>
+              ?
+            </h2>
+            <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
+              Everything you need to accelerate your engineering journey.
+            </p>
           </div>
+
+          <BentoGrid className="max-w-6xl mx-auto">
+            {features.map((feature, idx) => (
+              <BentoCard key={idx} {...feature} />
+            ))}
+          </BentoGrid>
         </section>
 
         {/* Stats Section */}
-        <section className="container mx-auto px-4 py-16">
-          <div className="border-brutal-thick bg-secondary text-secondary-foreground p-12 text-center">
-            <h2 className="font-head text-4xl font-bold mb-8">
-              Join the Movement
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div>
-                <div className="text-outlined text-4xl lg:text-6xl font-head mb-2">
+        <section className="container mx-auto px-4 py-24 mb-16">
+          <div className="bg-black text-white rounded-3xl p-12 md:p-16 relative overflow-hidden shadow-[8px_8px_0px_0px_rgba(128,128,128,0.5)]">
+            <div className="absolute top-0 right-0 p-32 bg-neutral-800 rounded-full mix-blend-overlay filter blur-3xl opacity-20"></div>
+            <div className="absolute bottom-0 left-0 p-32 bg-neutral-800 rounded-full mix-blend-overlay filter blur-3xl opacity-20"></div>
+
+            <div className="relative z-10 text-center mb-16">
+              <h2 className="font-head text-3xl md:text-5xl font-bold mb-4">
+                Join the Movement
+              </h2>
+              <p className="text-gray-400 text-lg">Growing faster every day.</p>
+            </div>
+
+            <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-12 text-center divide-y md:divide-y-0 md:divide-x divide-gray-800">
+              <div className="pt-8 md:pt-0">
+                <div className="flex justify-center mb-4 text-orange-500">
+                  <Users size={32} />
+                </div>
+                <div className="text-5xl md:text-6xl font-head font-bold mb-2">
                   500+
                 </div>
-                <p className="text-lg">Engineering Students</p>
+                <p className="text-gray-400">Engineering Students</p>
               </div>
-              <div>
-                <div className="text-outlined text-4xl lg:text-6xl font-head mb-2">
+              <div className="pt-8 md:pt-0 pl-0 md:pl-8">
+                <div className="flex justify-center mb-4 text-blue-500">
+                  <Layers size={32} />
+                </div>
+                <div className="text-5xl md:text-6xl font-head font-bold mb-2">
                   200+
                 </div>
-                <p className="text-lg">Research Posts</p>
+                <p className="text-gray-400">Research Posts</p>
               </div>
-              <div>
-                <div className="text-outlined text-4xl lg:text-6xl font-head mb-2">
+              <div className="pt-8 md:pt-0 pl-0 md:pl-8">
+                <div className="flex justify-center mb-4 text-green-500">
+                  <Lightbulb size={32} />
+                </div>
+                <div className="text-5xl md:text-6xl font-head font-bold mb-2">
                   50+
                 </div>
-                <p className="text-lg">Collaborative Quests</p>
+                <p className="text-gray-400">Collaborative Quests</p>
               </div>
             </div>
           </div>
         </section>
 
         {/* Footer */}
-        <footer className="border-t-4 border-black py-8 mt-16">
-          <div className="container mx-auto px-4 text-center">
-            <p className="text-muted-foreground">
-              Built by ITM RnD Club • For Engineering Students
+        <footer className="border-t border-gray-200 bg-white py-12">
+          <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center gap-2 font-head font-bold text-xl">
+              <Globe className="h-5 w-5" /> SPARK
+            </div>
+            <p className="text-neutral-500 text-sm">
+              © {new Date().getFullYear()} ITM RnD Club. All rights reserved.
             </p>
+            <div className="flex gap-6 text-sm font-medium text-neutral-600">
+              <a href="#" className="hover:text-black transition-colors">
+                Privacy
+              </a>
+              <a href="#" className="hover:text-black transition-colors">
+                Terms
+              </a>
+              <a href="#" className="hover:text-black transition-colors">
+                Contact
+              </a>
+            </div>
           </div>
         </footer>
       </main>
