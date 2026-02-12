@@ -74,7 +74,7 @@ export default async function Home() {
   return (
     <>
       <Navigation />
-      <main className="min-h-screen bg-[#fafafa]">
+      <main className="min-h-screen bg-background text-foreground">
         <Hero />
 
         {/* Features Grid - Bento Style */}
@@ -87,7 +87,7 @@ export default async function Home() {
               </span>
               ?
             </h2>
-            <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
+            <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
               Everything you need to accelerate your engineering journey.
             </p>
           </div>
@@ -101,18 +101,20 @@ export default async function Home() {
 
         {/* Stats Section */}
         <section className="container mx-auto px-4 py-24 mb-16">
-          <div className="bg-black text-white rounded-3xl p-12 md:p-16 relative overflow-hidden shadow-[8px_8px_0px_0px_rgba(128,128,128,0.5)]">
-            <div className="absolute top-0 right-0 p-32 bg-neutral-800 rounded-full mix-blend-overlay filter blur-3xl opacity-20"></div>
-            <div className="absolute bottom-0 left-0 p-32 bg-neutral-800 rounded-full mix-blend-overlay filter blur-3xl opacity-20"></div>
+          <div className="bg-card text-card-foreground border-2 border-brutal rounded-3xl p-12 md:p-16 relative overflow-hidden shadow-brutal">
+            <div className="absolute top-0 right-0 p-32 bg-primary/10 rounded-full blur-3xl opacity-20"></div>
+            <div className="absolute bottom-0 left-0 p-32 bg-primary/10 rounded-full blur-3xl opacity-20"></div>
 
             <div className="relative z-10 text-center mb-16">
               <h2 className="font-head text-3xl md:text-5xl font-bold mb-4">
                 Join the Movement
               </h2>
-              <p className="text-gray-400 text-lg">Growing faster every day.</p>
+              <p className="text-muted-foreground text-lg">
+                Growing faster every day.
+              </p>
             </div>
 
-            <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-12 text-center divide-y md:divide-y-0 md:divide-x divide-gray-800">
+            <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-12 text-center divide-y md:divide-y-0 md:divide-x divide-border">
               <div className="pt-8 md:pt-0">
                 <div className="flex justify-center mb-4 text-orange-500">
                   <Users size={32} />
@@ -120,7 +122,7 @@ export default async function Home() {
                 <div className="text-5xl md:text-6xl font-head font-bold mb-2">
                   500+
                 </div>
-                <p className="text-gray-400">Engineering Students</p>
+                <p className="text-muted-foreground">Engineering Students</p>
               </div>
               <div className="pt-8 md:pt-0 pl-0 md:pl-8">
                 <div className="flex justify-center mb-4 text-blue-500">
@@ -129,7 +131,7 @@ export default async function Home() {
                 <div className="text-5xl md:text-6xl font-head font-bold mb-2">
                   200+
                 </div>
-                <p className="text-gray-400">Research Posts</p>
+                <p className="text-muted-foreground">Research Posts</p>
               </div>
               <div className="pt-8 md:pt-0 pl-0 md:pl-8">
                 <div className="flex justify-center mb-4 text-green-500">
@@ -138,14 +140,14 @@ export default async function Home() {
                 <div className="text-5xl md:text-6xl font-head font-bold mb-2">
                   50+
                 </div>
-                <p className="text-gray-400">Collaborative Quests</p>
+                <p className="text-muted-foreground">Collaborative Quests</p>
               </div>
             </div>
           </div>
         </section>
 
         {/* Footer */}
-        <footer className="border-t border-gray-200 bg-white py-12">
+        <footer className="border-t border-border bg-card py-12">
           <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2 font-head font-bold text-xl">
               <Globe className="h-5 w-5" /> SPARK

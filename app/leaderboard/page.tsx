@@ -1,13 +1,19 @@
-import { client, queries, getImageUrl } from '@/lib/sanity/client'
-import Image from 'next/image'
-import { Navigation } from '@/components/layout/Navigation'
-import { Badge } from '@/components/retroui/Badge'
+import { client, queries, getImageUrl } from "@/lib/sanity/client";
+import Image from "next/image";
+import { Navigation } from "@/components/layout/Navigation";
+import { Badge } from "@/components/retroui/Badge";
 
 export default async function LeaderboardPage() {
-  const topUsers = await client.fetch(queries.getLeaderboard)
+  const topUsers = await client.fetch(queries.getLeaderboard);
 
-  const tierNames = ['', 'Spark Initiate', 'Idea Igniter', 'Forge Master', 'RnD Fellow']
-  const tierEmojis = ['', '⚡', '🔥', '⚙️', '🏆']
+  const tierNames = [
+    "",
+    "Spark Initiate",
+    "Idea Igniter",
+    "Forge Master",
+    "RnD Fellow",
+  ];
+  const tierEmojis = ["", "⚡", "🔥", "⚙️", "🏆"];
 
   return (
     <>
@@ -17,7 +23,10 @@ export default async function LeaderboardPage() {
         <section className="border-b-4 border-black bg-primary/10 py-12">
           <div className="container mx-auto px-4">
             <h1 className="font-head text-4xl lg:text-6xl font-bold mb-4">
-              Leaderboard 🏆
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
+                Leaderboard
+              </span>{" "}
+              🏆
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl">
               Top contributors and innovators in the SPARK community. Earn
@@ -31,7 +40,9 @@ export default async function LeaderboardPage() {
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((tier) => {
-                const count = topUsers.filter((u: any) => u.tier === tier).length
+                const count = topUsers.filter(
+                  (u: any) => u.tier === tier,
+                ).length;
                 return (
                   <div key={tier} className="text-center">
                     <p className="text-3xl font-head font-bold">
@@ -41,7 +52,7 @@ export default async function LeaderboardPage() {
                       {tierNames[tier]}
                     </p>
                   </div>
-                )
+                );
               })}
             </div>
           </div>
@@ -55,7 +66,9 @@ export default async function LeaderboardPage() {
               <div className="col-span-1 text-center">Rank</div>
               <div className="col-span-5">User</div>
               <div className="col-span-2 text-center">Tier</div>
-              <div className="col-span-2 text-center hidden md:block">Posts</div>
+              <div className="col-span-2 text-center hidden md:block">
+                Posts
+              </div>
               <div className="col-span-2 text-center">Points</div>
             </div>
 
@@ -64,15 +77,15 @@ export default async function LeaderboardPage() {
               <div
                 key={user._id}
                 className={`grid grid-cols-12 gap-4 p-4 items-center border-b-2 border-black last:border-b-0 hover:bg-primary/5 transition-colors ${
-                  index < 3 ? 'bg-accent/5' : ''
+                  index < 3 ? "bg-accent/5" : ""
                 }`}
               >
                 {/* Rank */}
                 <div className="col-span-1 text-center">
                   <span className="font-head text-2xl font-bold">
-                    {index === 0 && '🥇'}
-                    {index === 1 && '🥈'}
-                    {index === 2 && '🥉'}
+                    {index === 0 && "🥇"}
+                    {index === 1 && "🥈"}
+                    {index === 2 && "🥉"}
                     {index > 2 && `#${index + 1}`}
                   </span>
                 </div>
@@ -155,5 +168,5 @@ export default async function LeaderboardPage() {
         </section>
       </main>
     </>
-  )
+  );
 }
