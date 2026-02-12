@@ -1,36 +1,36 @@
-import { createClient } from '@sanity/client'
-import imageUrlBuilder from '@sanity/image-url'
+import { createClient } from "@sanity/client";
+import imageUrlBuilder from "@sanity/image-url";
 
 export const client = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '',
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
-  apiVersion: '2024-01-01',
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "",
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || "production",
+  apiVersion: "2024-01-01",
   useCdn: true, // Set to false if you need fresh data
   token: process.env.SANITY_API_TOKEN, // Required for write operations
-})
+});
 
 // Helper for generating image URLs
-const builder = imageUrlBuilder(client)
+const builder = imageUrlBuilder(client);
 
 export function urlFor(source: any) {
-  return builder.image(source)
+  return builder.image(source);
 }
 
 // Helper to get image URL (handles both Sanity images and external URLs)
 export function getImageUrl(source: any): string | null {
-  if (!source) return null
+  if (!source) return null;
 
   // If it's a string (external URL like Clerk avatar), return directly
-  if (typeof source === 'string') {
-    return source
+  if (typeof source === "string") {
+    return source;
   }
 
   // If it's a Sanity image reference, use urlFor
-  if (source._type === 'image' || source.asset) {
-    return urlFor(source).url()
+  if (source._type === "image" || source.asset) {
+    return urlFor(source).url();
   }
 
-  return null
+  return null;
 }
 
 // Common query helpers
@@ -53,12 +53,13 @@ export const queries = {
   }`,
 
   // Get single post by slug
-  getPostBySlug: (slug: string) => `*[_type == "post" && slug.current == "${slug}"][0] {
+  getPostBySlug: (
+    slug: string,
+  ) => `*[_type == "post" && slug.current == "${slug}"][0] {
     _id,
     title,
     slug,
     content,
-    excerpt,
     excerpt,
     thumbnail,
     coverImageUrl,
@@ -77,7 +78,7 @@ export const queries = {
     "quest": quest->{title, slug}
   }`,
 
-  // Get all active quests
+  // Get active quests (Updated to count participants safely)
   getActiveQuests: `*[_type == "quest" && status in ["open", "active"]] | order(_createdAt desc) {
     _id,
     title,
@@ -87,12 +88,41 @@ export const queries = {
     difficulty,
     rewardPoints,
     daysRemaining,
-    "proposedBy": proposedBy->{name, avatar},
-    "participantCount": count(participants)
+    "proposedBy": proposedBy->{name, avatar, clerkId},
+    "participantCount": count(*[_type == "questParticipant" && quest._ref == ^._id])
+  }`,
+
+  // Get IDs of quests the user has joined (For O(1) state lookup)
+  getUserQuestIds: (clerkId: string) =>
+    `*[_type == "questParticipant" && user->clerkId == "${clerkId}"].quest._ref`,
+
+  // Get single quest by slug with detailed participant info
+  getQuestBySlug: (
+    slug: string,
+  ) => `*[_type == "quest" && slug.current == "${slug}"][0] {
+    _id,
+    title,
+    slug,
+    description,
+    status,
+    difficulty,
+    rewardPoints,
+    daysRemaining,
+    "proposedBy": proposedBy->{name, avatar, clerkId},
+    "participants": *[_type == "questParticipant" && quest._ref == ^._id] {
+      _id,
+      joinedAt,
+      status,
+      "user": user->{name, avatar, clerkId}
+    },
+    timeline,
+    resources
   }`,
 
   // Get user by Clerk ID
-  getUserByClerkId: (clerkId: string) => `*[_type == "user" && clerkId == "${clerkId}"][0] {
+  getUserByClerkId: (
+    clerkId: string,
+  ) => `*[_type == "user" && clerkId == "${clerkId}"][0] {
     _id,
     name,
     email,
@@ -117,6 +147,11 @@ export const queries = {
     commitment,
     "postedBy": postedBy->{_id, name, avatar, tier, clerkId},
     "teamMembers": teamMembers[]->{_id, clerkId},
+    "applicants": applicants[] {
+      _key,
+      status,
+      "user": user->{clerkId}
+    },
     "applicantCount": count(applicants)
   }`,
 
@@ -134,22 +169,30 @@ export const queries = {
   }`,
 
   // Get single collaboration by ID
-  getCollaborationById: (id: string) => `*[_type == "collaboration" && _id == "${id}"][0] {
+  getCollaborationById: (
+    id: string,
+  ) => `*[_type == "collaboration" && _id == "${id}"][0] {
     _id,
     projectName,
     description,
     skillsNeeded,
     duration,
     commitment,
+    status,
     githubRepo,
     designDoc,
     messages[] {
+        _key,
         text,
         timestamp,
-        "user": user->{name, avatar}
+        "user": user->{name, avatar, clerkId}
     },
-    "postedBy": postedBy->{_id, name, avatar, tier},
-    "teamMembers": teamMembers[]->{_id, name, avatar, tier, university},
-    "applicants": applicants
+    "postedBy": postedBy->{_id, name, avatar, tier, clerkId},
+    "teamMembers": teamMembers[]->{_id, name, avatar, tier, university, clerkId},
+    "applicants": applicants[] {
+        _key,
+        status,
+        "user": user->{_id, name, avatar, tier, university, clerkId}
+    }
   }`,
-}
+};

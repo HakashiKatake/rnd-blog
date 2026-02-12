@@ -124,10 +124,10 @@ export const questSchema = defineType({
             participants: 'participants',
         },
         prepare(selection) {
-            const { title, status, participants = [] } = selection
+            const { title, status, participants } = selection
             return {
                 title,
-                subtitle: `${status.toUpperCase()} - ${participants.length} participant(s)`,
+                subtitle: `${(status || 'open').toUpperCase()} - ${(participants || []).length} participant(s)`,
             }
         },
     },

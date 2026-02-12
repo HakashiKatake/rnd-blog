@@ -1,10 +1,18 @@
 import { client, queries } from '@/lib/sanity/client'
+import { auth } from '@clerk/nextjs/server'
 import { Navigation } from '@/components/layout/Navigation'
 import { QuestCard } from '@/components/quests/QuestCard'
 import { Badge } from '@/components/retroui/Badge'
 
 export default async function QuestsPage() {
-  const quests = await client.fetch(queries.getActiveQuests)
+  const { userId } = await auth()
+  const questsPromise = client.fetch(queries.getActiveQuests)
+  const myQuestIdsPromise = userId
+    ? client.fetch(queries.getUserQuestIds(userId))
+    : Promise.resolve([])
+
+  const [quests, myQuestIds] = await Promise.all([questsPromise, myQuestIdsPromise])
+  const joinedSet = new Set(myQuestIds)
 
   return (
     <>
@@ -56,7 +64,11 @@ export default async function QuestsPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {quests.map((quest: any) => (
-                <QuestCard key={quest._id} quest={quest} />
+                <QuestCard
+                  key={quest._id}
+                  quest={quest}
+                  isJoined={joinedSet.has(quest._id)}
+                />
               ))}
             </div>
           )}

@@ -21,6 +21,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  serverExternalPackages: ['jsdom', 'isomorphic-dompurify'],
   experimental: {
     serverActions: {
       bodySizeLimit: '500mb',

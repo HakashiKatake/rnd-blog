@@ -1,11 +1,13 @@
-import Link from 'next/link'
-import { client, queries } from '@/lib/sanity/client'
-import { Navigation } from '@/components/layout/Navigation'
-import { ProjectCard } from '@/components/collaborate/ProjectCard'
-import { Button } from '@/components/retroui/Button'
+import Link from "next/link";
+import { client, queries } from "@/lib/sanity/client";
+import { Navigation } from "@/components/layout/Navigation";
+import { ProjectCard } from "@/components/collaborate/ProjectCard";
+import { Button } from "@/components/retroui/Button";
 
 export default async function CollaboratePage() {
-  const collaborations = await client.fetch(queries.getOpenCollaborations)
+  const collaborations = await client
+    .withConfig({ useCdn: false })
+    .fetch(queries.getOpenCollaborations);
 
   return (
     <>
@@ -27,7 +29,10 @@ export default async function CollaboratePage() {
                   + Post a Project
                 </Button>
               </Link>
-              <Button variant="outline" className="w-full sm:w-auto font-bold border-2 border-black hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-card text-foreground">
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto font-bold border-2 border-black hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] bg-card text-foreground"
+              >
                 Browsing {collaborations.length} Projects
               </Button>
             </div>
@@ -57,5 +62,5 @@ export default async function CollaboratePage() {
         </section>
       </main>
     </>
-  )
+  );
 }
