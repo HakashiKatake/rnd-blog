@@ -97,51 +97,89 @@
 
 .dark {
   /* SPARK Dark Mode - NeoBrutalism Refined */
-  --background: #09090b; /* Zinc 950 */
-  --foreground: #e4e4e7; /* Zinc 200 */
+  --background: #09090b;
+  /* Zinc 950 */
+  --foreground: #e4e4e7;
+  /* Zinc 200 */
 
-  --card: #18181b; /* Zinc 900 */
+  --card: #18181b;
+  /* Zinc 900 */
   --card-foreground: #e4e4e7;
 
   --popover: #18181b;
   --popover-foreground: #e4e4e7;
 
-  --primary: #ff6b35; /* Ignition Orange */
+  --primary: #ff6b35;
+  /* Ignition Orange */
   --primary-foreground: #ffffff;
 
-  --secondary: #27272a; /* Zinc 800 */
+  --secondary: #27272a;
+  /* Zinc 800 */
   --secondary-foreground: #ffffff;
 
-  --muted: #27272a; /* Zinc 800 */
-  --muted-foreground: #a1a1aa; /* Zinc 400 */
+  --muted: #27272a;
+  /* Zinc 800 */
+  --muted-foreground: #a1a1aa;
+  /* Zinc 400 */
 
-  --accent: #00b4d8; /* Electric Teal */
+  --accent: #00b4d8;
+  /* Electric Teal */
   --accent-foreground: #ffffff;
 
-  --destructive: #ef4444; /* Red 500 */
+  --destructive: #ef4444;
+  /* Red 500 */
 
-  --border: #3f3f46; /* Zinc 700 */
+  --border: #3f3f46;
+  /* Zinc 700 */
   --input: #3f3f46;
   --ring: #ff8c42;
 
-  --success: #22c55e; /* Green 500 */
+  --success: #22c55e;
+  /* Green 500 */
 
   /* Skeleton Colors (Dark) */
   --skeleton-base: rgba(255, 255, 255, 0.05);
   --skeleton-highlight: rgba(255, 255, 255, 0.1);
 
   /* NeoBrutalism Adaptive (Dark) */
-  --brutal-border: #e4e4e7; /* Zinc 200 - High Contrast for Dark Mode */
-  --brutal-shadow: #000000; /* Pure Black - Deep Shadow */
+  --brutal-border: #e4e4e7;
+  /* Zinc 200 - High Contrast for Dark Mode */
+  --brutal-shadow: #000000;
+  /* Pure Black - Deep Shadow */
 }
 
 @layer base {
   * {
     @apply outline-ring/50;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-background text-foreground font-body;
+    @apply bg-background text-foreground font-body antialiased;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02";
+  }
+
+  /* Custom Scrollbar for Webkit */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/80 hover:bg-primary border-2 border-background rounded-full transition-colors;
+  }
+
+  /* Selection Color */
+  ::selection {
+    @apply bg-primary/20 text-primary-foreground;
   }
 
   h1,
@@ -150,7 +188,7 @@
   h4,
   h5,
   h6 {
-    @apply font-head font-bold;
+    @apply font-head font-bold tracking-tight;
   }
 
   code,
@@ -235,12 +273,10 @@
 }
 
 .animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--skeleton-base) 25%,
-    var(--skeleton-highlight) 37%,
-    var(--skeleton-base) 63%
-  );
+  background: linear-gradient(90deg,
+      var(--skeleton-base) 25%,
+      var(--skeleton-highlight) 37%,
+      var(--skeleton-base) 63%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;
 }
