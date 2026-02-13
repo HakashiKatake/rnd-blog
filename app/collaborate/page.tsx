@@ -17,7 +17,10 @@ export default async function CollaboratePage() {
         <section className="border-b-4 border-black bg-secondary/10 py-8 sm:py-12">
           <div className="container mx-auto px-4">
             <h1 className="font-head text-3xl sm:text-4xl lg:text-6xl font-bold mb-3 sm:mb-4">
-              Build <span className="text-secondary-foreground">Together</span>
+              Build{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
+                Together
+              </span>
             </h1>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl">
               Don't build alone. Find active engineering projects looking for

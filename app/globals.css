@@ -5,13 +5,13 @@
 
 @theme inline {
   /* SPARK Color Palette - NeoBrutalism */
-  --color-spark-orange: #FF6B35;
-  --color-spark-orange-hover: #FF8C42;
-  --color-spark-navy: #1A2947;
-  --color-spark-teal: #00B4D8;
-  --color-spark-cream: #FFF8F3;
-  --color-spark-gray: #1E1E1E;
-  --color-spark-green: #06A77D;
+  --color-spark-orange: #ff6b35;
+  --color-spark-orange-hover: #ff8c42;
+  --color-spark-navy: #1a2947;
+  --color-spark-teal: #00b4d8;
+  --color-spark-cream: #fff8f3;
+  --color-spark-gray: #1e1e1e;
+  --color-spark-green: #06a77d;
 
   /* Shadcn Base Colors - Customized */
   --color-background: var(--background);
@@ -34,9 +34,9 @@
   --color-popover-foreground: var(--popover-foreground);
 
   /* SPARK Typography */
-  --font-head: 'Poppins', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-head: "Poppins", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
   --font-sans: var(--font-body);
 
   /* NeoBrutalism Border Radius */
@@ -49,40 +49,40 @@
 
 :root {
   /* SPARK Light Mode - NeoBrutalism */
-  --background: #FFF8F3;
+  --background: #fff8f3;
   /* Cream */
-  --foreground: #1E1E1E;
+  --foreground: #1e1e1e;
   /* Dark Gray */
 
-  --card: #FFFFFF;
-  --card-foreground: #1E1E1E;
+  --card: #ffffff;
+  --card-foreground: #1e1e1e;
 
-  --popover: #FFFFFF;
-  --popover-foreground: #1E1E1E;
+  --popover: #ffffff;
+  --popover-foreground: #1e1e1e;
 
-  --primary: #FF6B35;
+  --primary: #ff6b35;
   /* Ignition Orange */
-  --primary-foreground: #FFFFFF;
+  --primary-foreground: #ffffff;
 
-  --secondary: #1A2947;
+  --secondary: #1a2947;
   /* Deep Navy */
-  --secondary-foreground: #FFFFFF;
+  --secondary-foreground: #ffffff;
 
-  --muted: #F5F5F5;
-  --muted-foreground: #6C757D;
+  --muted: #f5f5f5;
+  --muted-foreground: #6c757d;
 
-  --accent: #00B4D8;
+  --accent: #00b4d8;
   /* Electric Teal */
-  --accent-foreground: #FFFFFF;
+  --accent-foreground: #ffffff;
 
-  --destructive: #DC3545;
+  --destructive: #dc3545;
 
   --border: #000000;
   /* Black borders for neobrutal */
   --input: #000000;
-  --ring: #FF6B35;
+  --ring: #ff6b35;
 
-  --success: #06A77D;
+  --success: #06a77d;
 
   --radius: 8px;
 
@@ -96,48 +96,43 @@
 }
 
 .dark {
-  /* SPARK Dark Mode - NeoBrutalism */
-  --background: #0D1117;
-  /* Very Dark */
-  --foreground: #E6EDF3;
-  /* Light Text */
+  /* SPARK Dark Mode - NeoBrutalism Refined */
+  --background: #09090b; /* Zinc 950 */
+  --foreground: #e4e4e7; /* Zinc 200 */
 
-  --card: #161B22;
-  --card-foreground: #E6EDF3;
+  --card: #18181b; /* Zinc 900 */
+  --card-foreground: #e4e4e7;
 
-  --popover: #161B22;
-  --popover-foreground: #E6EDF3;
+  --popover: #18181b;
+  --popover-foreground: #e4e4e7;
 
-  --primary: #FF6B35;
-  /* Same Orange */
-  --primary-foreground: #FFFFFF;
+  --primary: #ff6b35; /* Ignition Orange */
+  --primary-foreground: #ffffff;
 
-  --secondary: #1A2947;
-  /* Navy stays */
-  --secondary-foreground: #FFFFFF;
+  --secondary: #27272a; /* Zinc 800 */
+  --secondary-foreground: #ffffff;
 
-  --muted: #21262D;
-  --muted-foreground: #8B949E;
+  --muted: #27272a; /* Zinc 800 */
+  --muted-foreground: #a1a1aa; /* Zinc 400 */
 
-  --accent: #00B4D8;
-  /* Same Teal */
-  --accent-foreground: #FFFFFF;
+  --accent: #00b4d8; /* Electric Teal */
+  --accent-foreground: #ffffff;
 
-  --destructive: #F85149;
+  --destructive: #ef4444; /* Red 500 */
 
-  --border: #30363D;
-  --input: #30363D;
-  --ring: #FF8C42;
+  --border: #3f3f46; /* Zinc 700 */
+  --input: #3f3f46;
+  --ring: #ff8c42;
 
-  --success: #3FB950;
+  --success: #22c55e; /* Green 500 */
 
   /* Skeleton Colors (Dark) */
-  --skeleton-base: rgba(255, 255, 255, 0.1);
-  --skeleton-highlight: rgba(255, 255, 255, 0.15);
+  --skeleton-base: rgba(255, 255, 255, 0.05);
+  --skeleton-highlight: rgba(255, 255, 255, 0.1);
 
   /* NeoBrutalism Adaptive (Dark) */
-  --brutal-border: #30363D;
-  --brutal-shadow: rgba(0, 0, 0, 0.5);
+  --brutal-border: #e4e4e7; /* Zinc 200 - High Contrast for Dark Mode */
+  --brutal-shadow: #000000; /* Pure Black - Deep Shadow */
 }
 
 @layer base {
@@ -165,7 +160,6 @@
 }
 
 /* NeoBrutalism utilities are defined in tailwind.config.ts */
-
 
 /* Custom Animations for SPARK */
 @keyframes spark-burst {
@@ -241,10 +235,12 @@
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg,
-      var(--skeleton-base) 25%,
-      var(--skeleton-highlight) 37%,
-      var(--skeleton-base) 63%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 25%,
+    var(--skeleton-highlight) 37%,
+    var(--skeleton-base) 63%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;
 }
