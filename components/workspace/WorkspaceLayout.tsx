@@ -200,118 +200,116 @@ export function WorkspaceLayout({ collaboration }: WorkspaceLayoutProps) {
       </div>
 
       {/* ── Main Content ─────────────────────────────────── */}
-      <div className="flex-1 flex gap-0 min-h-0 p-3 pt-2">
-        <AnimatePresence mode="popLayout">
-          {/* ─── Left Panel: Chat + Team ─────────────── */}
-          {!isBoardExpanded && (
-            <motion.div
-              layout
-              key="left-panel"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{
-                opacity: 1,
-                x: 0,
-                width: isChatExpanded ? "100%" : undefined,
+      <div className="flex-1 flex gap-0 min-h-0 p-3 pt-2 relative overflow-hidden">
+        {/* ─── Left Panel: Chat + Team ─────────────── */}
+        <div
+          className={`flex flex-col gap-2 h-full transition-all duration-300 ease-in-out
+            ${activePanel === "chat" ? "flex w-full" : "hidden md:flex"
+            }
+            ${isChatExpanded
+              ? "md:w-full"
+              : isBoardExpanded
+                ? "md:w-0 md:opacity-0 md:overflow-hidden"
+                : "md:w-[320px] lg:w-[360px]"
+            }
+            flex-shrink-0
+          `}
+        >
+          {/* Chat */}
+          <div
+            className={`${showTeam && !isChatExpanded ? "flex-1 min-h-0" : "flex-1"
+              } overflow-hidden`}
+          >
+            <WorkspaceChat
+              collaborationId={collaboration._id}
+              initialMessages={collaboration.messages}
+              isExpanded={isChatExpanded}
+              onToggleExpand={() => {
+                setIsChatExpanded(!isChatExpanded);
+                if (!isChatExpanded) setIsBoardExpanded(false);
               }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className={`flex flex-col gap-2 h-full ${isChatExpanded ? "flex-1" : "w-full md:w-[320px] lg:w-[360px]"
-                } ${activePanel !== "chat" ? "hidden md:flex" : "flex"} flex-shrink-0`}
-            >
-              {/* Chat */}
-              <div
-                className={`${showTeam && !isChatExpanded ? "flex-1 min-h-0" : "flex-1"} overflow-hidden`}
+            />
+          </div>
+
+          {/* Team sidebar collapsed into bottom */}
+          {!isChatExpanded && (
+            <div className="flex-shrink-0">
+              <button
+                onClick={() => setShowTeam(!showTeam)}
+                className="w-full flex items-center justify-between px-3 py-2 bg-card border-2 border-border rounded-t-lg font-head font-bold text-sm hover:bg-muted transition-colors"
+                title="Toggle Team View"
               >
-                <WorkspaceChat
-                  collaborationId={collaboration._id}
-                  initialMessages={collaboration.messages}
-                  isExpanded={isChatExpanded}
-                  onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
+                <span className="flex items-center gap-2">
+                  <FaUsers className="text-[#FF6B35]" />
+                  Team ({memberCount})
+                </span>
+                <span
+                  className={`text-xs transition-transform ${showTeam ? "rotate-180" : ""
+                    }`}
+                >
+                  ▼
+                </span>
+              </button>
+              <div
+                className={`overflow-hidden transition-all duration-300 ${showTeam ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                  }`}
+              >
+                <TeamSidebar
+                  members={allMembers.filter(
+                    (m) => m._id !== collaboration.postedBy._id
+                  )}
+                  postedBy={collaboration.postedBy}
+                  projectInfo={{
+                    description: collaboration.description,
+                    duration: collaboration.duration,
+                    commitment: collaboration.commitment,
+                    githubRepo: collaboration.githubRepo,
+                    designDoc: collaboration.designDoc,
+                    skillsNeeded: collaboration.skillsNeeded,
+                  }}
                 />
               </div>
-
-              {/* Team sidebar collapsed into bottom */}
-              {!isChatExpanded && (
-                <div className="flex-shrink-0">
-                  <button
-                    onClick={() => setShowTeam(!showTeam)}
-                    className="w-full flex items-center justify-between px-3 py-2 bg-card border-2 border-border rounded-t-lg font-head font-bold text-sm hover:bg-muted transition-colors"
-                  >
-                    <span className="flex items-center gap-2">
-                      <FaUsers className="text-[#FF6B35]" />
-                      Team ({memberCount})
-                    </span>
-                    <span
-                      className={`text-xs transition-transform ${showTeam ? "rotate-180" : ""}`}
-                    >
-                      ▼
-                    </span>
-                  </button>
-                  <AnimatePresence>
-                    {showTeam && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <TeamSidebar
-                          members={allMembers.filter(
-                            (m) => m._id !== collaboration.postedBy._id,
-                          )}
-                          postedBy={collaboration.postedBy}
-                          projectInfo={{
-                            description: collaboration.description,
-                            duration: collaboration.duration,
-                            commitment: collaboration.commitment,
-                            githubRepo: collaboration.githubRepo,
-                            designDoc: collaboration.designDoc,
-                            skillsNeeded: collaboration.skillsNeeded,
-                          }}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )}
-            </motion.div>
+            </div>
           )}
+        </div>
 
-          {/* ─── Right Panel: Whiteboard ─────────────── */}
-          {!isChatExpanded && (
-            <motion.div
-              layout
-              key="right-panel"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className={`flex-1 h-full relative ml-2 ${activePanel !== "board" ? "hidden md:block" : "block"
-                }`}
+        {/* ─── Right Panel: Whiteboard ─────────────── */}
+        <div
+          className={`flex-1 h-full relative transition-all duration-300 ease-in-out ml-0 md:ml-2
+            ${activePanel === "board" ? "block" : "hidden md:block"
+            }
+            ${isBoardExpanded
+              ? "md:w-full"
+              : isChatExpanded
+                ? "md:w-0 md:opacity-0 md:overflow-hidden md:ml-0"
+                : "md:w-auto"
+            }
+          `}
+        >
+          {/* Board controls overlay */}
+          <div className="absolute top-3 right-3 z-50 hidden md:flex items-center gap-2 pointer-events-none">
+            <button
+              onClick={() => {
+                setIsBoardExpanded(!isBoardExpanded);
+                if (!isBoardExpanded) setIsChatExpanded(false);
+              }}
+              className="pointer-events-auto flex items-center gap-1.5 px-3 py-1.5 bg-card border-2 border-border shadow-brutal rounded-md hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all font-bold text-xs"
+              title={isBoardExpanded ? "Split View" : "Focus Mode"}
             >
-              {/* Board controls overlay */}
-              <div className="absolute top-3 right-3 z-50 hidden md:flex items-center gap-2">
-                <button
-                  onClick={() => setIsBoardExpanded(!isBoardExpanded)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-card border-2 border-border shadow-brutal rounded-md hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all font-bold text-xs"
-                >
-                  {isBoardExpanded ? (
-                    <>
-                      <FaCompress className="text-xs" /> Split
-                    </>
-                  ) : (
-                    <>
-                      <FaExpand className="text-xs" /> Focus
-                    </>
-                  )}
-                </button>
-              </div>
+              {isBoardExpanded ? (
+                <>
+                  <FaCompress className="text-xs" /> Split
+                </>
+              ) : (
+                <>
+                  <FaExpand className="text-xs" /> Focus
+                </>
+              )}
+            </button>
+          </div>
 
-              <WorkspaceBoard collaborationId={collaboration._id} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+          <WorkspaceBoard collaborationId={collaboration._id} />
+        </div>
       </div>
     </div>
   );

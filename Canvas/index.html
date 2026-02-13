@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beautiful Landing</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins', sans-serif;
+}
+
+body{
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    color:white;
+    overflow-x:hidden;
+}
+
+/* Floating background blobs */
+body::before, body::after{
+    content:"";
+    position:absolute;
+    width:400px;
+    height:400px;
+    border-radius:50%;
+    filter:blur(120px);
+    z-index:-1;
+}
+
+body::before{
+    background:#6c63ff;
+    top:-100px;
+    left:-100px;
+}
+
+body::after{
+    background:#ff6584;
+    bottom:-100px;
+    right:-100px;
+}
+
+/* NAVBAR */
+nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:25px 8%;
+}
+
+nav h2{
+    font-weight:800;
+    letter-spacing:1px;
+}
+
+nav ul{
+    list-style:none;
+    display:flex;
+    gap:30px;
+}
+
+nav ul li a{
+    text-decoration:none;
+    color:white;
+    font-weight:400;
+    transition:0.3s;
+}
+
+nav ul li a:hover{
+    color:#ff6584;
+}
+
+/* HERO */
+.hero{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:80px 8%;
+    min-height:90vh;
+}
+
+.hero-text{
+    max-width:600px;
+}
+
+.hero-text h1{
+    font-size:60px;
+    line-height:1.2;
+    font-weight:800;
+    margin-bottom:20px;
+}
+
+.hero-text span{
+    background: linear-gradient(90deg,#ff6584,#6c63ff);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.hero-text p{
+    font-size:18px;
+    opacity:0.85;
+    margin-bottom:35px;
+}
+
+/* BUTTONS */
+.buttons{
+    display:flex;
+    gap:20px;
+}
+
+.btn{
+    padding:14px 32px;
+    border-radius:50px;
+    font-size:16px;
+    border:none;
+    cursor:pointer;
+    transition:0.4s ease;
+}
+
+.primary{
+    background:linear-gradient(90deg,#ff6584,#6c63ff);
+    color:white;
+    font-weight:600;
+}
+
+.primary:hover{
+    transform:translateY(-5px);
+    box-shadow:0 15px 30px rgba(0,0,0,0.4);
+}
+
+.secondary{
+    background:transparent;
+    border:2px solid white;
+    color:white;
+}
+
+.secondary:hover{
+    background:white;
+    color:#2c5364;
+    transform:translateY(-5px);
+}
+
+/* IMAGE SECTION */
+.hero-img{
+    position:relative;
+}
+
+.hero-img img{
+    width:480px;
+    max-width:100%;
+    border-radius:25px;
+    box-shadow:0 25px 50px rgba(0,0,0,0.5);
+    transition:0.4s ease;
+}
+
+.hero-img img:hover{
+    transform:scale(1.05) rotate(-1deg);
+}
+
+/* RESPONSIVE */
+@media(max-width:1000px){
+    .hero{
+        flex-direction:column;
+        text-align:center;
+    }
+
+    .hero-text h1{
+        font-size:42px;
+    }
+
+    .hero-img{
+        margin-top:50px;
+    }
+
+    .buttons{
+        justify-content:center;
+        flex-wrap:wrap;
+    }
+}
+
+@media(max-width:600px){
+    nav ul{
+        display:none;
+    }
+
+    .hero-text h1{
+        font-size:34px;
+    }
+
+    .hero-text p{
+        font-size:15px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+    <h2>Brand.</h2>
+    <ul>
+        <li><a href="#">Product</a></li>
+        <li><a href="#">Solutions</a></li>
+        <li><a href="#">Pricing</a></li>
+        <li><a href="#">Contact</a></li>
+    </ul>
+</nav>
+
+<section class="hero">
+    <div class="hero-text">
+        <h1>Build something <span>beautiful.</span></h1>
+        <p>Design modern, responsive websites that look stunning on every device. Elevate your creativity and build digital experiences that stand out.</p>
+        <div class="buttons">
+            <button class="btn primary">Get Started</button>
+            <button class="btn secondary">Learn More</button>
+        </div>
+    </div>
+
+    <div class="hero-img">
+        <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c" alt="Creative Work">
+    </div>
+</section>
+
+</body>
+</html>
