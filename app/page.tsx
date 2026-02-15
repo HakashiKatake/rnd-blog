@@ -1,6 +1,8 @@
 import { Navigation } from "@/components/layout/Navigation";
 import { Hero } from "@/components/landing/Hero";
 import { BentoGrid, BentoCard } from "@/components/landing/BentoGrid";
+import { Button } from "@/components/retroui/Button";
+import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getOrCreateUser } from "@/lib/auth/user";
 import {
@@ -12,6 +14,7 @@ import {
   Layers,
   Lightbulb,
   Globe,
+  ArrowRight,
 } from "lucide-react";
 
 export default async function Home() {
@@ -144,6 +147,18 @@ export default async function Home() {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Visionaries Call to Action */}
+        <section className="container mx-auto px-4 pb-20 text-center">
+          <Link href="/visionaries">
+            <Button
+              size="lg"
+              className="bg-zinc-900 text-white border-2 border-brutal shadow-brutal hover:shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-lg px-8 py-6 h-auto font-head group w-full sm:w-auto"
+            >
+              Meet the Visionaries <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
         </section>
 
         {/* Footer */}

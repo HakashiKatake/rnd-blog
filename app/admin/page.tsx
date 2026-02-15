@@ -7,12 +7,14 @@ import {
     rejectPost,
     toggleQuestStatus,
     approveCollaboration,
-    rejectCollaboration
+    rejectCollaboration,
+    approveEventRegistration,
+    rejectEventRegistration
 } from "../actions/admin";
 import { Button } from "@/components/retroui/Button";
 import { toast } from "sonner";
 import Link from "next/link";
-import { FaCheck, FaXmark, FaEye, FaScroll, FaHandshake, FaNewspaper } from "react-icons/fa6";
+import { FaCheck, FaXmark, FaEye, FaScroll, FaHandshake, FaNewspaper, FaTicket } from "react-icons/fa6";
 import * as Tabs from "@radix-ui/react-tabs";
 
 export default function AdminPage() {
@@ -23,6 +25,7 @@ export default function AdminPage() {
     const [posts, setPosts] = useState<any[]>([]);
     const [quests, setQuests] = useState<any[]>([]);
     const [collaborations, setCollaborations] = useState<any[]>([]);
+    const [registrations, setRegistrations] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
     // Check session storage on mount
@@ -57,12 +60,16 @@ export default function AdminPage() {
         },
         "collaborations": *[_type == "collaboration" && status != "rejected"] | order(_createdAt desc) {
           _id, projectName, status, postedBy->{name}, _createdAt
+        },
+        "registrations": *[_type == "eventRegistration" && status == "pending"] | order(registeredAt desc) {
+            _id, name, cohort, batch, ticketId, registeredAt, clerkId, "eventName": event->title, "userEmail": user->email
         }
       }`;
             const data = await client.withConfig({ useCdn: false }).fetch(query);
             setPosts(data.posts);
             setQuests(data.quests);
             setCollaborations(data.collaborations);
+            setRegistrations(data.registrations);
         } catch (err) {
             console.error(err);
             toast.error("Failed to fetch data");
@@ -109,6 +116,32 @@ export default function AdminPage() {
             },
             error: "Failed to update collaboration",
         });
+    };
+
+    const handleRegistrationAction = async (id: string, action: "approve" | "reject") => {
+        const fn = action === "approve" ? approveEventRegistration : rejectEventRegistration;
+
+        const toastId = toast.loading(action === "approve" ? "Approving & Sending Email..." : "Rejecting...");
+        try {
+            const result: any = await fn(id);
+            if (result.success) {
+                fetchAllData();
+                if (result.warning) {
+                    toast.warning("Registration Approved with Issue", {
+                        description: result.warning,
+                        id: toastId,
+                        duration: 8000
+                    });
+                } else {
+                    toast.success(`Registration ${action}d!`, { id: toastId });
+                }
+            } else {
+                toast.error(result.error || "Failed to update registration", { id: toastId });
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("An unexpected error occurred", { id: toastId });
+        }
     };
 
     if (!isAuthenticated) {
@@ -159,27 +192,65 @@ export default function AdminPage() {
                     </div>
                 </div>
 
-                <Tabs.Root defaultValue="posts" className="flex flex-col gap-6">
-                    <Tabs.List className="flex gap-2 border-b-2 border-border pb-px">
+                <Tabs.Root defaultValue="registrations" className="flex flex-col gap-6">
+                    <Tabs.List className="flex gap-2 border-b-2 border-border pb-px overflow-x-auto">
+                        <Tabs.Trigger
+                            value="registrations"
+                            className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2 whitespace-nowrap"
+                        >
+                            <FaTicket /> Registrations ({registrations.length})
+                        </Tabs.Trigger>
                         <Tabs.Trigger
                             value="posts"
-                            className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2"
+                            className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2 whitespace-nowrap"
                         >
                             <FaNewspaper /> Posts ({posts.length})
                         </Tabs.Trigger>
                         <Tabs.Trigger
                             value="quests"
-                            className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2"
+                            className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2 whitespace-nowrap"
                         >
                             <FaScroll /> Quests ({quests.length})
                         </Tabs.Trigger>
                         <Tabs.Trigger
                             value="collabs"
-                            className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2"
+                            className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2 whitespace-nowrap"
                         >
                             <FaHandshake /> Collaborations ({collaborations.length})
                         </Tabs.Trigger>
                     </Tabs.List>
+
+                    {/* REGISTRATIONS TAB */}
+                    <Tabs.Content value="registrations" className="bg-card border-2 border-border rounded-lg shadow-brutal overflow-hidden">
+                        <div className="p-4 border-b-2 border-border bg-muted/20">
+                            <h2 className="font-bold">Pending Event Registrations</h2>
+                        </div>
+                        {registrations.length === 0 ? (
+                            <div className="p-8 text-center text-muted-foreground">No pending registrations.</div>
+                        ) : (
+                            <div className="divide-y divide-border">
+                                {registrations.map((reg) => (
+                                    <div key={reg._id} className="p-4 flex flex-col md:flex-row md:items-center justify-between hover:bg-muted/10 gap-4">
+                                        <div>
+                                            <h3 className="font-bold text-lg">{reg.name} <span className="text-muted-foreground font-normal text-sm">({reg.userEmail || `Clerk: ${reg.clerkId}` || 'No Email'})</span></h3>
+                                            <p className="font-medium text-primary">{reg.eventName}</p>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                {reg.cohort} • Batch {reg.batch} • {new Date(reg.registeredAt).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button size="sm" className="bg-green-500 text-white border-green-700 hover:bg-green-600" onClick={() => handleRegistrationAction(reg._id, "approve")}>
+                                                <FaCheck /> Approve
+                                            </Button>
+                                            <Button size="sm" className="bg-red-500 text-white border-red-700 hover:bg-red-600" onClick={() => handleRegistrationAction(reg._id, "reject")}>
+                                                <FaXmark /> Reject
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </Tabs.Content>
 
                     {/* POSTS TAB */}
                     <Tabs.Content value="posts" className="bg-card border-2 border-border rounded-lg shadow-brutal overflow-hidden">
