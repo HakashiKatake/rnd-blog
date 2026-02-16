@@ -61,8 +61,8 @@ export default function AdminPage() {
         "collaborations": *[_type == "collaboration" && status != "rejected"] | order(_createdAt desc) {
           _id, projectName, status, postedBy->{name}, _createdAt
         },
-        "registrations": *[_type == "eventRegistration" && status == "pending"] | order(registeredAt desc) {
-            _id, name, cohort, batch, ticketId, registeredAt, clerkId, "eventName": event->title, "userEmail": user->email
+        "registrations": *[_type == "eventRegistration"] | order(registeredAt desc) {
+            _id, name, cohort, batch, ticketId, registeredAt, clerkId, status, "eventName": event->title, "userEmail": user->email
         }
       }`;
             const data = await client.withConfig({ useCdn: false }).fetch(query);
@@ -223,7 +223,7 @@ export default function AdminPage() {
                     {/* REGISTRATIONS TAB */}
                     <Tabs.Content value="registrations" className="bg-card border-2 border-border rounded-lg shadow-brutal overflow-hidden">
                         <div className="p-4 border-b-2 border-border bg-muted/20">
-                            <h2 className="font-bold">Pending Event Registrations</h2>
+                            <h2 className="font-bold">All Event Registrations</h2>
                         </div>
                         {registrations.length === 0 ? (
                             <div className="p-8 text-center text-muted-foreground">No pending registrations.</div>
@@ -232,19 +232,32 @@ export default function AdminPage() {
                                 {registrations.map((reg) => (
                                     <div key={reg._id} className="p-4 flex flex-col md:flex-row md:items-center justify-between hover:bg-muted/10 gap-4">
                                         <div>
-                                            <h3 className="font-bold text-lg">{reg.name} <span className="text-muted-foreground font-normal text-sm">({reg.userEmail || `Clerk: ${reg.clerkId}` || 'No Email'})</span></h3>
-                                            <p className="font-medium text-primary">{reg.eventName}</p>
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="font-bold text-lg">{reg.name} </h3>
+                                                <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full inline-block
+                                                    ${reg.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                        reg.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                                            'bg-yellow-100 text-yellow-800'}`}>
+                                                    {reg.status || 'pending'}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground"> {reg.userEmail || `Clerk: ${reg.clerkId}`}</p>
+                                            <p className="font-medium text-primary mt-1">{reg.eventName}</p>
                                             <p className="text-xs text-muted-foreground mt-1">
-                                                {reg.cohort} • Batch {reg.batch} • {new Date(reg.registeredAt).toLocaleDateString()}
+                                                {reg.cohort} • Batch {reg.batch} • {reg.ticketId ? `Ticket: ${reg.ticketId} • ` : ''} {new Date(reg.registeredAt).toLocaleDateString()}
                                             </p>
                                         </div>
                                         <div className="flex gap-2">
-                                            <Button size="sm" className="bg-green-500 text-white border-green-700 hover:bg-green-600" onClick={() => handleRegistrationAction(reg._id, "approve")}>
-                                                <FaCheck /> Approve
-                                            </Button>
-                                            <Button size="sm" className="bg-red-500 text-white border-red-700 hover:bg-red-600" onClick={() => handleRegistrationAction(reg._id, "reject")}>
-                                                <FaXmark /> Reject
-                                            </Button>
+                                            {reg.status !== 'approved' && (
+                                                <Button size="sm" className="bg-green-500 text-white border-green-700 hover:bg-green-600" onClick={() => handleRegistrationAction(reg._id, "approve")}>
+                                                    <FaCheck /> {reg.status === 'rejected' ? 'Re-Approve' : 'Approve'}
+                                                </Button>
+                                            )}
+                                            {reg.status !== 'rejected' && (
+                                                <Button size="sm" className="bg-red-500 text-white border-red-700 hover:bg-red-600" onClick={() => handleRegistrationAction(reg._id, "reject")}>
+                                                    <FaXmark /> {reg.status === 'approved' ? 'Revoke' : 'Reject'}
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
                                 ))}

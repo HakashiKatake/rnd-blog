@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { clerkClient } from "@clerk/nextjs/server";
 import { Resend } from 'resend';
 import nodemailer from 'nodemailer';
+import QRCode from 'qrcode';
 
 // const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -129,6 +130,10 @@ export async function approveEventRegistration(registrationId: string) {
                 },
             });
 
+            // Generate QR Code Buffer
+            const qrCodeUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/my-tickets/${registration.ticketId}`;
+            const qrCodeBuffer = await QRCode.toBuffer(qrCodeUrl);
+
             const mailOptions = {
                 from: `"Rnd Club" <${process.env.EMAIL_USER}>`,
                 to: userEmail,
@@ -145,7 +150,7 @@ export async function approveEventRegistration(registrationId: string) {
                             <p><strong>Location:</strong> ${registration.locationType === 'virtual' ? 'Virtual Event' : registration.location}</p>
                             <p><strong>Ticket ID:</strong> ${registration.ticketId}</p>
                             <div style="margin-top: 20px; padding: 10px; background: #eee; text-align: center; font-family: monospace;">
-                                (QR Code Placeholder for ${registration.ticketId})
+                                <img src="cid:ticket-qr-code" alt="Ticket QR Code" style="margin: 0 auto; display: block;" />
                             </div>
                         </div>
 
@@ -154,7 +159,14 @@ export async function approveEventRegistration(registrationId: string) {
                         <p>See you there!</p>
                         <p>Rnd Club Team</p>
                     </div>
-                `
+                `,
+                attachments: [
+                    {
+                        filename: 'ticket-qr.png',
+                        content: qrCodeBuffer,
+                        cid: 'ticket-qr-code' // referenced in the html img src
+                    }
+                ]
             };
 
             try {
@@ -182,8 +194,69 @@ export async function approveEventRegistration(registrationId: string) {
 }
 
 export async function rejectEventRegistration(registrationId: string) {
+    console.log(`[Reject] Starting rejection for registration: ${registrationId}`);
     try {
+        // 1. Fetch Registration Details
+        const query = `*[_type == "eventRegistration" && _id == $id][0]{
+            name,
+            clerkId,
+            "userEmail": user->email,
+            "eventTitle": event->title
+        }`;
+
+        const registration = await client.withConfig({ useCdn: false }).fetch(query, { id: registrationId });
+
+        if (!registration) {
+            return { success: false, error: "Registration not found" };
+        }
+
+        let userEmail = registration.userEmail;
+
+        // Fallback: Try fetching from Clerk if email missing in Sanity
+        if (!userEmail && registration.clerkId) {
+            try {
+                const clerk = await clerkClient();
+                const user = await clerk.users.getUser(registration.clerkId);
+                userEmail = user.emailAddresses[0]?.emailAddress;
+            } catch (clerkError) {
+                console.error("[Reject] Failed to fetch user email from Clerk:", clerkError);
+            }
+        }
+
+        // 2. Update status in Sanity
         await client.patch(registrationId).set({ status: "rejected" }).commit();
+
+        // 3. Send Rejection Email
+        if (process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD && userEmail) {
+            console.log(`[Reject] Sending email to: ${userEmail}`);
+
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_APP_PASSWORD,
+                },
+            });
+
+            await transporter.sendMail({
+                from: `"Rnd Club" <${process.env.EMAIL_USER}>`,
+                to: userEmail,
+                subject: `Update on your registration: ${registration.eventTitle}`,
+                html: `
+                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                        <h2>Registration Update</h2>
+                        <p>Hi ${registration.name},</p>
+                        <p>Thank you for your interest in <strong>${registration.eventTitle}</strong>.</p>
+                        <p>Unfortunately, we are unable to approve your registration at this time. This could be due to capacity limits or specific eligibility criteria for this event.</p>
+                        <br/>
+                        <p>We hope to see you at our future events!</p>
+                        <p>Best regards,</p>
+                        <p>Rnd Club Team</p>
+                    </div>
+                `
+            });
+        }
+
         revalidatePath("/admin");
         return { success: true };
     } catch (error) {

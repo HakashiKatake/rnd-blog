@@ -113,6 +113,18 @@ export const eventSchema = defineType({
             type: 'reference',
             to: [{ type: 'user' }],
         }),
+        defineField({
+            name: 'notificationsSent24h',
+            title: 'Sent 24h Reminder',
+            type: 'boolean',
+            initialValue: false,
+        }),
+        defineField({
+            name: 'notificationsSent1h',
+            title: 'Sent 1h Reminder',
+            type: 'boolean',
+            initialValue: false,
+        }),
     ],
     preview: {
         select: {
