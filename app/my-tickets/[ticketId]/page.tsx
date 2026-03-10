@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { FaCheckCircle, FaTimesCircle, FaClock, FaMapMarkerAlt, FaCalendarAlt, FaUser } from "react-icons/fa";
 import Link from "next/link";
 import { Button } from "@/components/retroui/Button";
+import { TicketActionsClient } from "@/components/events/TicketActionsClient";
 
 interface TicketPageProps {
     params: {
@@ -121,6 +122,18 @@ export default async function TicketPage(props: TicketPageProps) {
                             {ticket.ticketId}
                         </code>
                     </div>
+
+                    {isApproved && (
+                        <div className="pt-2">
+                            <TicketActionsClient
+                                eventName={ticket.eventName}
+                                startTime={ticket.startTime}
+                                description={ticket.description}
+                                location={ticket.location}
+                                locationType={ticket.locationType}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer */}

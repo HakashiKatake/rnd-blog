@@ -38,12 +38,12 @@ export function EventCard({ event }: EventProps) {
     return (
         <div className="bg-card text-card-foreground border-2 border-border shadow-brutal hover:shadow-brutal-sm transition-all rounded-xl overflow-hidden flex flex-col h-full group">
             {/* Image Section */}
-            <div className="h-48 bg-muted relative overflow-hidden border-b-2 border-border">
+            <div className="h-96 bg-black relative overflow-hidden border-b-2 border-border flex items-center justify-center">
                 {event.image ? (
                     <img
                         src={getImageUrl(event.image) || ""}
                         alt={event.title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-secondary/20">

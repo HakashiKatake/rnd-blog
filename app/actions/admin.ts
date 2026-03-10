@@ -69,7 +69,15 @@ export async function rejectCollaboration(collabId: string) {
     }
 }
 
-export async function approveEventRegistration(registrationId: string) {
+export interface EmailPayload {
+    registrationId: string;
+    customSubject?: string;
+    customHtml?: string;
+    attachments?: { filename: string; content: string; contentType: string }[];
+}
+
+export async function approveEventRegistration(payload: EmailPayload) {
+    const { registrationId, customSubject, customHtml, attachments } = payload;
     console.log(`[Approve] Starting approval for registration: ${registrationId}`);
     try {
         const query = `*[_type == "eventRegistration" && _id == $id][0]{
@@ -137,8 +145,8 @@ export async function approveEventRegistration(registrationId: string) {
             const mailOptions = {
                 from: `"Rnd Club" <${process.env.EMAIL_USER}>`,
                 to: userEmail,
-                subject: `Ticket Approved: ${registration.eventTitle}`,
-                html: `
+                subject: customSubject || `Ticket Approved: ${registration.eventTitle}`,
+                html: customHtml || `
                     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
                         <h1>Your Ticket is Ready! 🎟️</h1>
                         <p>Hi ${registration.name},</p>
@@ -165,7 +173,12 @@ export async function approveEventRegistration(registrationId: string) {
                         filename: 'ticket-qr.png',
                         content: qrCodeBuffer,
                         cid: 'ticket-qr-code' // referenced in the html img src
-                    }
+                    },
+                    ...(attachments ? attachments.map(att => ({
+                        filename: att.filename,
+                        content: Buffer.from(att.content.split(',')[1], 'base64'),
+                        contentType: att.contentType
+                    })) : [])
                 ]
             };
 
@@ -193,7 +206,8 @@ export async function approveEventRegistration(registrationId: string) {
     }
 }
 
-export async function rejectEventRegistration(registrationId: string) {
+export async function rejectEventRegistration(payload: EmailPayload) {
+    const { registrationId, customSubject, customHtml, attachments } = payload;
     console.log(`[Reject] Starting rejection for registration: ${registrationId}`);
     try {
         // 1. Fetch Registration Details
@@ -238,11 +252,11 @@ export async function rejectEventRegistration(registrationId: string) {
                 },
             });
 
-            await transporter.sendMail({
+            const mailOptions = {
                 from: `"Rnd Club" <${process.env.EMAIL_USER}>`,
                 to: userEmail,
-                subject: `Update on your registration: ${registration.eventTitle}`,
-                html: `
+                subject: customSubject || `Update on your registration: ${registration.eventTitle}`,
+                html: customHtml || `
                     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
                         <h2>Registration Update</h2>
                         <p>Hi ${registration.name},</p>
@@ -253,8 +267,15 @@ export async function rejectEventRegistration(registrationId: string) {
                         <p>Best regards,</p>
                         <p>Rnd Club Team</p>
                     </div>
-                `
-            });
+                `,
+                attachments: attachments ? attachments.map(att => ({
+                    filename: att.filename,
+                    content: Buffer.from(att.content.split(',')[1], 'base64'),
+                    contentType: att.contentType
+                })) : []
+            };
+
+            await transporter.sendMail(mailOptions);
         }
 
         revalidatePath("/admin");
