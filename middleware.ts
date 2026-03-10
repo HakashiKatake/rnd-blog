@@ -9,7 +9,6 @@ const isPublicRoute = createRouteMatcher([
     '/quest/(.*)',
     '/leaderboard(.*)',
     '/profile(.*)',
-    '/visionaries(.*)',
     '/events(.*)',
 ])
 

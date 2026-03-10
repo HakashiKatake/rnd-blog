@@ -9,7 +9,8 @@ import {
     approveCollaboration,
     rejectCollaboration,
     approveEventRegistration,
-    rejectEventRegistration
+    rejectEventRegistration,
+    getAdminData
 } from "../actions/admin";
 import { Button } from "@/components/retroui/Button";
 import { toast } from "sonner";
@@ -67,25 +68,15 @@ export default function AdminPage() {
     const fetchAllData = async () => {
         setIsLoading(true);
         try {
-            const query = `{
-        "posts": *[_type == "post" && status in ["draft", "pending", "pending_review"]] | order(_createdAt desc) {
-          _id, title, slug, status, author->{name}, _createdAt
-        },
-        "quests": *[_type == "quest"] | order(_createdAt desc) {
-          _id, title, slug, status, proposedBy->{name}, _createdAt
-        },
-        "collaborations": *[_type == "collaboration" && status != "rejected"] | order(_createdAt desc) {
-          _id, projectName, status, postedBy->{name}, _createdAt
-        },
-        "registrations": *[_type == "eventRegistration"] | order(registeredAt desc) {
-            _id, name, cohort, batch, ticketId, registeredAt, clerkId, status, "eventName": event->title, "userEmail": user->email
-        }
-      }`;
-            const data = await client.withConfig({ useCdn: false }).fetch(query);
-            setPosts(data.posts);
-            setQuests(data.quests);
-            setCollaborations(data.collaborations);
-            setRegistrations(data.registrations);
+            const result = await getAdminData();
+            if (result.success && result.data) {
+                setPosts(result.data.posts);
+                setQuests(result.data.quests);
+                setCollaborations(result.data.collaborations);
+                setRegistrations(result.data.registrations);
+            } else {
+                toast.error(result.error || "Failed to fetch data");
+            }
         } catch (err) {
             console.error(err);
             toast.error("Failed to fetch data");

@@ -9,6 +9,30 @@ import QRCode from 'qrcode';
 
 // const resend = new Resend(process.env.RESEND_API_KEY);
 
+export async function getAdminData() {
+    try {
+        const query = `{
+            "posts": *[_type == "post" && status in ["draft", "pending", "pending_review"]] | order(_createdAt desc) {
+              _id, title, slug, status, author->{name}, _createdAt
+            },
+            "quests": *[_type == "quest"] | order(_createdAt desc) {
+              _id, title, slug, status, proposedBy->{name}, _createdAt
+            },
+            "collaborations": *[_type == "collaboration" && status != "rejected"] | order(_createdAt desc) {
+              _id, projectName, status, postedBy->{name}, _createdAt
+            },
+            "registrations": *[_type == "eventRegistration"] | order(registeredAt desc) {
+                _id, name, cohort, batch, ticketId, registeredAt, clerkId, status, "eventName": event->title, "userEmail": user->email
+            }
+          }`;
+        const data = await client.withConfig({ useCdn: false }).fetch(query);
+        return { success: true, data };
+    } catch (error) {
+        console.error("Failed to fetch admin data:", error);
+        return { success: false, error: "Failed to fetch admin data" };
+    }
+}
+
 export async function approvePost(postId: string) {
     try {
         await client.patch(postId).set({ status: "approved" }).commit();

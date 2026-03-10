@@ -149,17 +149,6 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Visionaries Call to Action */}
-        <section className="container mx-auto px-4 pb-20 text-center">
-          <Link href="/visionaries">
-            <Button
-              size="lg"
-              className="bg-zinc-900 text-white border-2 border-brutal shadow-brutal hover:shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-lg px-8 py-6 h-auto font-head group w-full sm:w-auto"
-            >
-              Meet the Visionaries <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
-        </section>
 
         {/* Footer */}
         <footer className="border-t border-border bg-card py-12">
