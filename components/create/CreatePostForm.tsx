@@ -622,7 +622,7 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                       className="border-brutal flex items-center gap-2 text-xs bg-card hover:bg-[#fff9f0] border-orange-500 text-orange-700 shadow-sm"
                    >
                      <ClipboardCheck className="w-4 h-4 text-orange-600" />
-                     Peer Review
+                     Review
                    </Button>
                 </div>
               </div>
@@ -1364,9 +1364,9 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
         <DialogContent className="max-w-2xl bg-card border-2 border-brutal shadow-brutal font-serif p-0 overflow-hidden">
           <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-6 flex flex-col items-center justify-center text-white border-b-2 border-black">
             <ClipboardCheck className="w-12 h-12 mb-2 opacity-90" />
-            <h2 className="font-head text-2xl font-bold uppercase tracking-wider text-center">
-              IEEE Peer Review
-            </h2>
+            <DialogTitle className="font-head text-2xl font-bold uppercase tracking-wider text-center m-0">
+              Review
+            </DialogTitle>
             <p className="text-sm font-sans font-medium text-white/80 max-w-sm text-center">
               Our automated reviewer is actively verifying your manuscript format, constraints, and academic rigorousness against standards.
             </p>
@@ -1397,7 +1397,29 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                })}
             </div>
 
-            {reviewRecommendations && (
+            {reviewRecommendations && reviewRecommendations.trim().toUpperCase() === "VIOLATION" ? (
+               <div className="border-t-4 border-red-600 pt-8 animate-in slide-in-from-bottom-4 duration-700 fade-in mt-4">
+                  <h3 className="font-head text-2xl font-black uppercase flex items-center gap-3 mb-6 tracking-wide text-red-600">
+                     <XCircle className="w-8 h-8" /> Policy Violation Detected
+                  </h3>
+                  <div className="bg-[#fef2f2] text-red-900 p-8 border-4 border-red-700 shadow-[8px_8px_0_0_#b91c1c] rounded-none">
+                     <p className="font-sans font-bold text-lg leading-relaxed">
+                        ⚠️ The AI Peer Reviewer detected vulgarity, trolling, or targeted harassment directed at specific individuals or organizations within your paper. Our community strictly prohibits this. Please revise your content immediately.
+                     </p>
+                  </div>
+               </div>
+            ) : reviewRecommendations && reviewRecommendations.trim().toUpperCase() === "PERFECT" ? (
+               <div className="border-t-4 border-green-600 pt-8 animate-in slide-in-from-bottom-4 duration-700 fade-in mt-4">
+                  <h3 className="font-head text-2xl font-black uppercase flex items-center gap-3 mb-6 tracking-wide text-green-600">
+                     <Sparkles className="w-8 h-8" /> Flawless Manuscript
+                  </h3>
+                  <div className="bg-[#f0fdf4] text-green-900 p-8 border-4 border-green-700 shadow-[8px_8px_0_0_#15803d] rounded-none">
+                     <p className="font-sans font-bold text-lg leading-relaxed">
+                        Outstanding work! 🏆 The AI Peer Reviewer found your research paper to be exceptionally rigorous, logically sound, and perfectly formatted to IEEE standards. No structural or academic modifications are recommended.
+                     </p>
+                  </div>
+               </div>
+            ) : reviewRecommendations && (
                <div className="border-t-4 border-black pt-8 animate-in slide-in-from-bottom-4 duration-700 fade-in mt-4">
                   <h3 className="font-head text-2xl font-black uppercase flex items-center gap-3 mb-6 tracking-wide text-[#ff6b35]">
                      <FileCheck2 className="w-8 h-8" /> Actionable Feedback

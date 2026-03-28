@@ -16,9 +16,14 @@ ${contextInfo}
 Write a COMPLETE research paper perfectly structured for IEEE format. Make the content dense and professional, at least 1500 words total across the sections. The user expects a fully formatted, publication-ready paper with visuals.
 
 In your response, you MUST include:
-1. In the METHODS section: Include an SVG Process Flowchart showing the architecture/steps of your methodology. Use \`\`\`svg \\n <svg viewBox="0 0 800 400" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="background-color: white;">...</svg> \\n \`\`\`. The flowchart should be a professional block diagram with rectangular nodes, text, and arrows.
+1. In the METHODS section: Include an SVG Process Flowchart. Use \`\`\`svg \\n <svg viewBox="0 0 1000 300" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="background-color: white;">...</svg> \\n \`\`\`. 
+   - CRITICAL: Make the flowchart a simple, STRICTLY linear left-to-right sequence (e.g., 4 or 5 boxes total). NO complex branching! 
+   - Draw standard boxes: \`<rect x="..." y="100" width="180" height="80" fill="#f8fafc" stroke="#3b82f6" stroke-width="3" rx="8"/>\`.
+   - Space the boxes out evenly (e.g., x=50, 270, 490, 710). 
+   - CRITICAL TEXT WRAPPING: SVG \`<text>\` doesn't wrap! For any labels over 18 characters, you MUST break it manually using \`<tspan>\`: \`<text x="140" y="130" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000"><tspan x="140" dy="0">Line 1</tspan><tspan x="140" dy="20">Line 2</tspan></text>\`.
 2. In the RESULTS section: Include a professional GFM Markdown Data Table (with at least 4 rows and 3 columns) comparing key metrics or hardware specifications.
-3. In the RESULTS section: Include an SVG Graph (Bar chart or Line chart) visualizing the abstract data. Use \`\`\`svg \\n <svg viewBox="0 0 800 400" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" style="background-color: white;">...</svg> \\n \`\`\`. Give it a white background, black axes, padding margins, and use standard professional chart aesthetics.
+3. In the RESULTS section: Include an SVG Graph (Bar chart or Line chart) visualizing the data. For Bar chart, draw standard bars. For Line chart, draw a clean polyline. 
+   - Ensure the \`viewBox="0 0 800 400"\` correctly frames the chart. Don't crowd labels.
 
 Respond EXACTLY in this format, using the exact delimiters:
 

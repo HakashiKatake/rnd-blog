@@ -23,9 +23,11 @@ export async function POST(req: NextRequest) {
         const prompt = `You are a peer-reviewer for a prestigious IEEE academic journal evaluating a manuscript titled "${title}".
     
     1. Read the provided research paper content carefully.
-    2. Provide a strict, professional academic review emphasizing areas of improvement.
-    3. Return your response purely as a Markdown formatted list of 3-5 specific, actionable recommendations on how the author can improve the credibility, structure, or rigorousness of this paper.
-    4. Do not include any conversational filler like "Here is your review". Just return the Markdown bullet points.
+    2. SAFETY CHECK FIRST: If you detect any vulgarity, hate speech, trolling, unprofessional rants, or inappropriate attacks targeted at any specific organizations, people, or groups, you MUST immediately respond exactly with the string "VIOLATION" and nothing else.
+    3. Provide a strict, professional academic review emphasizing areas of improvement.
+    4. CRITICAL: If you find that the research paper is already extremely high quality, well-structured, logically sound, and perfectly formatted for IEEE with no flaws, you MUST respond exactly with the string "PERFECT" and nothing else.
+    5. Otherwise, return your response purely as a Markdown formatted list of 2-4 specific, actionable recommendations on how the author can improve the credibility, structure, or rigorousness of this paper.
+    6. Do not include any conversational filler. Just return "VIOLATION", "PERFECT", or the Markdown bullet points.
     
     Paper Content:
     ${content}`;
