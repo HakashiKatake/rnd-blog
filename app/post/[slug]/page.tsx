@@ -1,3 +1,4 @@
+import React from 'react'
 import { client, queries, getImageUrl, urlFor } from '@/lib/sanity/client'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
@@ -200,11 +201,13 @@ export default async function PostPage({
                           </code>
                         )
                       },
-                      p({ node, children }) {
-                        const text = String(children?.[0] || "");
+                      p({ node, children }: any) {
+                        const childrenArray = React.Children.toArray(children);
+                        const firstChild = childrenArray[0];
+                        const text = typeof firstChild === 'string' ? firstChild : '';
                         const isCaption = text.startsWith("Fig") || text.startsWith("Table") || text.startsWith("Flowchart");
                         if (isCaption) {
-                           return <p className="mb-4 mt-1 text-center font-bold text-[9px] uppercase tracking-tight">{children}</p>;
+                           return <p className="mb-4 mt-1 text-center font-bold text-[11px] uppercase tracking-tight">{children}</p>;
                         }
                         return <p className="mb-2 indent-4 text-justify leading-relaxed tracking-tight">{children}</p>;
                       }

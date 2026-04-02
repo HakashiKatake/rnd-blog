@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -1280,17 +1280,14 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                           );
                         },
                         p({ node, children }: any) {
-                          const text = String(children?.[0] || "");
+                          const childrenArray = React.Children.toArray(children);
+                          const firstChild = childrenArray[0];
+                          const text = typeof firstChild === 'string' ? firstChild : '';
                           const isCaption = text.startsWith("Fig") || text.startsWith("Table") || text.startsWith("Flowchart");
-                          
                           if (isCaption) {
-                            return (
-                              <p className="mb-2 text-justify indent-4 leading-relaxed tracking-tight">
-                                {children}
-                              </p>
-                            );
+                            return <p className="mb-4 mt-1 text-center font-bold text-[9px] uppercase tracking-tight">{children}</p>;
                           }
-                          return <p className="mb-2 text-justify indent-4 leading-relaxed tracking-tight">{children}</p>;
+                          return <p className="mb-2 indent-4 text-justify leading-relaxed tracking-tight">{children}</p>;
                         }
                       }}
                     >
