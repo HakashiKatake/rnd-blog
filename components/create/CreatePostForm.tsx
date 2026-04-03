@@ -347,7 +347,60 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
   const coverInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
   const videoThumbnailInputRef = useRef<HTMLInputElement>(null);
+  const videoCaptureRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isUploadingVideoThumbnail, setIsUploadingVideoThumbnail] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
+
+  const handleCaptureThumbnail = async () => {
+    if (!videoCaptureRef.current) return;
+
+    try {
+      setIsCapturing(true);
+      const video = videoCaptureRef.current;
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Failed to get canvas context");
+
+      // Draw current video frame to canvas
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Convert canvas to blob
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((b) => {
+          if (b) resolve(b);
+          else reject(new Error("Failed to create blob"));
+        }, "image/jpeg", 0.9);
+      });
+
+      const toastId = toast.loading("Capturing and uploading frame...");
+
+      // Upload blob to Cloudinary
+      const res = await fetch(`/api/upload?type=image`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "image/jpeg",
+        },
+        body: blob,
+      });
+
+      if (!res.ok) throw new Error("Failed to upload captured frame");
+
+      const data = await res.json();
+      if (data.secure_url) {
+        handleChange("coverImageUrl", data.secure_url);
+        toast.success("Frame captured and set as thumbnail!", { id: toastId });
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to capture frame. Ensure video is loaded.");
+    } finally {
+      setIsCapturing(false);
+    }
+  };
 
   // Helper to insert text at cursor position
   const insertTextAtCursor = (textToInsert: string) => {
@@ -822,15 +875,15 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
               {/* Video Thumbnail (Cloudinary) */}
               <div>
                 <label className="block font-semibold mb-2 text-sm uppercase tracking-wide">
-                  Video Thumbnail (Premium CDN Cover)
-                </label>
+                   Video Thumbnail (Drive Link)
+                 </label>
                 <div className="flex gap-2">
                    <div className="relative flex-1">
                       <Input
                         type="text"
                         value={formData.videoThumbnail}
                         onChange={(e) => handleChange("videoThumbnail", e.target.value)}
-                        placeholder="Upload a video or paste CDN URL..."
+                        placeholder="Upload a video or paste Drive URL..."
                         className="pr-10"
                       />
                       {isUploadingVideoThumbnail && (
@@ -857,7 +910,67 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                       onChange={handleVideoThumbnailUpload}
                    />
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1">Upload any video format. It will be automatically converted to a high-speed CDN link for your paper's cover.</p>
+                <p className="text-[10px] text-muted-foreground mt-1">Upload any video format or paste a Google Drive link. It will be automatically synced and optimized for your paper's cover.</p>
+              
+                {formData.videoThumbnail && (
+                   <div className="mt-4 space-y-3 p-4 border-2 border-brutal border-dashed rounded-lg bg-orange-50/5">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                           <Video className="w-4 h-4" /> Thumbnail Selector
+                        </label>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={handleCaptureThumbnail}
+                          disabled={isCapturing}
+                          className="bg-primary text-white h-7 text-[10px] px-3 border-brutal"
+                        >
+                          {isCapturing ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3 mr-1" />}
+                          Set Current Frame as Thumbnail
+                        </Button>
+                      </div>
+                      
+                      <div className="relative aspect-video bg-black rounded-md overflow-hidden border-2 border-black">
+                         <video
+                            ref={videoCaptureRef}
+                            src={formData.videoThumbnail}
+                            controls
+                            muted
+                            playsInline
+                            crossOrigin="anonymous"
+                            className="w-full h-full"
+                         />
+                         {isCapturing && (
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
+                               <Loader2 className="w-8 h-8 animate-spin text-white" />
+                            </div>
+                         )}
+                      </div>
+                      
+                      {formData.coverImageUrl && (
+                         <div className="flex gap-3 items-center">
+                            <div className="relative w-20 aspect-video rounded border border-border overflow-hidden">
+                               <Image src={formData.coverImageUrl} alt="Current Thumbnail" fill className="object-cover" />
+                            </div>
+                            <div className="flex-1">
+                               <p className="text-[10px] font-bold text-success flex items-center gap-1">
+                                  <CheckCircle className="w-3 h-3" /> Custom Thumbnail Active
+                                </p>
+                               <p className="text-[9px] text-muted-foreground">This frame will be shown on the explore cards.</p>
+                            </div>
+                            <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleChange("coverImageUrl", "")}
+                              className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                            >
+                               <Trash className="w-3 h-3" />
+                            </Button>
+                         </div>
+                      )}
+                   </div>
+                )}
               </div>
             </div>
 
