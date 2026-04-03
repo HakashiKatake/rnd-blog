@@ -104,8 +104,8 @@ function VideoPreview({ src, poster, title }: { src: string, poster?: string | n
   const [hasError, setHasError] = useState(false);
 
   // Auto-generate Cloudinary thumbnail if poster is missing
-  const autoPoster = !poster && src.includes('cloudinary.com') && src.includes('/video/upload/') 
-    ? src.replace('/video/upload/', '/video/upload/so_0.1,w_800,h_450,c_fill/').replace(/\.[^/.]+$/, ".jpg")
+  const autoPoster = !poster && src.includes('cloudinary.com') 
+    ? src.replace('/upload/', '/upload/so_0.1,w_640,h_360,c_fill,q_auto,f_auto/').replace(/\.[^/.]+$/, ".jpg")
     : poster;
 
   return (
@@ -135,7 +135,7 @@ function VideoPreview({ src, poster, title }: { src: string, poster?: string | n
           />
           {!isLoaded && !hasError && (
              <div className="absolute inset-0 flex items-center justify-center bg-muted animate-pulse">
-                <Bot className="w-8 h-8 text-muted-foreground/30" />
+                <Zap className="w-8 h-8 text-muted-foreground/30 fill-muted-foreground/10" />
              </div>
           )}
           {hasError && (
@@ -152,7 +152,7 @@ function VideoPreview({ src, poster, title }: { src: string, poster?: string | n
       {/* Indicator Overlay - Shows static visual flair */}
       <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover/video:opacity-100 transition-opacity duration-300 pointer-events-none">
          <div className="w-10 h-10 rounded-full bg-primary/95 flex items-center justify-center shadow-brutal border-2 border-black">
-            <Bot className="w-5 h-5 text-primary-foreground" />
+            <Zap className="w-5 h-5 text-primary-foreground fill-primary-foreground" />
          </div>
       </div>
     </div>
