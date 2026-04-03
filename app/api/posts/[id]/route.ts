@@ -15,36 +15,37 @@ export async function PUT(
         }
 
         const body = await request.json()
-        const { title, excerpt, content, tags } = body
-
-        // Fetch the post to check ownership
-        const post = await client.fetch(`*[_type == "post" && _id == $id][0] { author->{ clerkId } }`, { id })
-
-        if (!post) {
-            return NextResponse.json({ error: 'Post not found' }, { status: 404 })
-        }
-
-        // Check if the current user is the author
-        // Note: This relies on the author having a clerkId field or being able to map.
-        // Ideally we check if post.author.clerkId === clerkUser.id
-
-        if (post.author?.clerkId !== clerkUser.id) {
-            // Only allow if they match
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-        }
-
-        // Update post in Sanity
-        const updatedPost = await client
-            .patch(id)
-            .set({
-                title,
-                excerpt,
-                content,
-                tags: (tags || []).map((t: string) => t.toLowerCase()),
-                isEdited: true,
-                // We don't update slug to preserve SEO and links, usually
-                // But if title changes drastically, maybe? Let's keep slug stable for now.
-            })
+        const { title, excerpt, content, tags, coverImageUrl, videoThumbnail, authorDetails } = body
+ 
+         // Fetch the post to check ownership
+         const post = await client.fetch(`*[_type == "post" && _id == $id][0] { author->{ clerkId } }`, { id })
+ 
+         if (!post) {
+             return NextResponse.json({ error: 'Post not found' }, { status: 404 })
+         }
+ 
+         // Check if the current user is the author
+         // Note: This relies on the author having a clerkId field or being able to map.
+         // Ideally we check if post.author.clerkId === clerkUser.id
+ 
+         if (post.author?.clerkId !== clerkUser.id) {
+             // Only allow if they match
+             return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+         }
+ 
+         // Update post in Sanity
+         const updatedPost = await client
+             .patch(id)
+             .set({
+                 title,
+                 excerpt,
+                 content,
+                 authorDetails,
+                 tags: (tags || []).map((t: string) => t.toLowerCase()),
+                 isEdited: true,
+                 ...(coverImageUrl && { coverImageUrl }), 
+                 ...(videoThumbnail && { videoThumbnail }),
+             })
             .commit()
 
         return NextResponse.json({

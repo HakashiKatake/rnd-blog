@@ -56,7 +56,7 @@ export const postSchema = defineType({
         }),
         defineField({
             name: 'videoThumbnail',
-            title: 'Video Thumbnail URL (CDN)',
+            title: 'Video Thumbnail URL (Drive Link)',
             type: 'url',
         }),
         defineField({
