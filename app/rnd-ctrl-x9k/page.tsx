@@ -10,12 +10,14 @@ import {
     rejectCollaboration,
     approveEventRegistration,
     rejectEventRegistration,
+    approveEvent,
+    rejectEvent,
     getAdminData
 } from "../actions/admin";
 import { Button } from "@/components/retroui/Button";
 import { toast } from "sonner";
 import Link from "next/link";
-import { FaCheck, FaXmark, FaEye, FaScroll, FaHandshake, FaNewspaper, FaTicket, FaPaperclip, FaTrash } from "react-icons/fa6";
+import { FaCheck, FaXmark, FaEye, FaScroll, FaHandshake, FaNewspaper, FaTicket, FaPaperclip, FaTrash, FaCalendarCheck } from "react-icons/fa6";
 import * as Tabs from "@radix-ui/react-tabs";
 import * as Dialog from "@radix-ui/react-dialog";
 
@@ -34,6 +36,7 @@ export default function AdminPage() {
     const [quests, setQuests] = useState<any[]>([]);
     const [collaborations, setCollaborations] = useState<any[]>([]);
     const [registrations, setRegistrations] = useState<any[]>([]);
+    const [events, setEvents] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
     // Email Modal State
@@ -74,6 +77,7 @@ export default function AdminPage() {
                 setQuests(result.data.quests);
                 setCollaborations(result.data.collaborations);
                 setRegistrations(result.data.registrations);
+                setEvents(result.data.events || []);
             } else {
                 toast.error(result.error || "Failed to fetch data");
             }
@@ -109,6 +113,19 @@ export default function AdminPage() {
                 return "Quest updated!";
             },
             error: "Failed to update quest",
+        });
+    };
+
+    const handleEventAction = async (id: string, action: "approve" | "reject") => {
+        const fn = action === "approve" ? approveEvent : rejectEvent;
+        const promise = fn(id);
+        toast.promise(promise, {
+            loading: "Updating event...",
+            success: () => {
+                fetchAllData();
+                return `Event ${action}d!`;
+            },
+            error: "Failed to update event",
         });
     };
 
@@ -311,6 +328,12 @@ export default function AdminPage() {
                         >
                             <FaHandshake /> Collaborations ({collaborations.length})
                         </Tabs.Trigger>
+                        <Tabs.Trigger
+                            value="events"
+                            className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2 whitespace-nowrap"
+                        >
+                            <FaCalendarCheck /> Events ({events.length})
+                        </Tabs.Trigger>
                     </Tabs.List>
 
                     {/* REGISTRATIONS TAB */}
@@ -464,6 +487,71 @@ export default function AdminPage() {
                                             <Button size="sm" className="bg-red-500 text-white border-red-700 hover:bg-red-600" onClick={() => handleCollabAction(collab._id, "reject")}>
                                                 <FaXmark /> Reject
                                             </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </Tabs.Content>
+
+                    {/* EVENTS TAB */}
+                    <Tabs.Content value="events" className="bg-card border-2 border-border rounded-lg shadow-brutal overflow-hidden">
+                        <div className="p-4 border-b-2 border-border bg-muted/20">
+                            <h2 className="font-bold">Proposed Events</h2>
+                        </div>
+                        {events.length === 0 ? (
+                            <div className="p-8 text-center text-muted-foreground">No events found.</div>
+                        ) : (
+                            <div className="divide-y divide-border">
+                                {events.map((event) => (
+                                    <div key={event._id} className="p-4 flex flex-col md:flex-row md:items-center justify-between hover:bg-muted/10 gap-4">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                                                <h3 className="font-bold text-lg">{event.title}</h3>
+                                                <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full inline-block
+                                                    ${event.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                        event.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                                            'bg-yellow-100 text-yellow-800'}`}>
+                                                    {event.status || 'pending'}
+                                                </span>
+                                                {event.eventType && (
+                                                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 inline-block">
+                                                        {event.eventType}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">
+                                                Organizer: <span className="font-semibold">{event.organizer?.name || 'Unknown'}</span>
+                                            </p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">
+                                                {event.locationType && <span className="capitalize">{event.locationType}</span>}
+                                                {event.location && <span> · {event.location}</span>}
+                                            </p>
+                                            {event.startTime && (
+                                                <p className="text-xs text-muted-foreground mt-0.5">
+                                                    📅 {new Date(event.startTime).toLocaleString()}
+                                                    {event.endTime && ` → ${new Date(event.endTime).toLocaleString()}`}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div className="flex gap-2 shrink-0">
+                                            <Link
+                                                href={`/events/${event.slug?.current}`}
+                                                target="_blank"
+                                                className="p-2 hover:bg-muted rounded-md border border-transparent hover:border-border transition-all"
+                                            >
+                                                <FaEye />
+                                            </Link>
+                                            {event.status !== 'approved' && (
+                                                <Button size="sm" className="bg-green-500 text-white border-green-700 hover:bg-green-600" onClick={() => handleEventAction(event._id, "approve")}>
+                                                    <FaCheck /> Approve
+                                                </Button>
+                                            )}
+                                            {event.status !== 'rejected' && (
+                                                <Button size="sm" className="bg-red-500 text-white border-red-700 hover:bg-red-600" onClick={() => handleEventAction(event._id, "reject")}>
+                                                    <FaXmark /> Reject
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
                                 ))}

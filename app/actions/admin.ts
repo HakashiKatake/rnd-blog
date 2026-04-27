@@ -23,6 +23,11 @@ export async function getAdminData() {
             },
             "registrations": *[_type == "eventRegistration"] | order(registeredAt desc) {
                 _id, name, cohort, batch, ticketId, registeredAt, clerkId, status, "eventName": event->title, "userEmail": user->email
+            },
+            "events": *[_type == "event"] | order(_createdAt desc) {
+                _id, title, slug, status, eventType, locationType, location, startTime, endTime,
+                "organizer": organizer->{name, email},
+                _createdAt
             }
           }`;
         const data = await client.withConfig({ useCdn: false }).fetch(query);
@@ -90,6 +95,31 @@ export async function rejectCollaboration(collabId: string) {
     } catch (error) {
         console.error("Failed to reject collaboration:", error);
         return { success: false, error: "Failed to reject collaboration" };
+    }
+}
+
+export async function approveEvent(eventId: string) {
+    try {
+        await client.patch(eventId).set({ status: "approved" }).commit();
+        revalidatePath("/admin");
+        revalidatePath("/events");
+        revalidatePath("/");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to approve event:", error);
+        return { success: false, error: "Failed to approve event" };
+    }
+}
+
+export async function rejectEvent(eventId: string) {
+    try {
+        await client.patch(eventId).set({ status: "rejected" }).commit();
+        revalidatePath("/admin");
+        revalidatePath("/events");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to reject event:", error);
+        return { success: false, error: "Failed to reject event" };
     }
 }
 
