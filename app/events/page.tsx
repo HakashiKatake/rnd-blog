@@ -119,31 +119,7 @@ export default async function EventsPage() {
                     </section>
                 )}
 
-                {/* Newsletter / Notifications */}
-                <section className="container mx-auto px-4 pb-20">
-                    <div className="bg-zinc-900 rounded-3xl p-12 text-white relative overflow-hidden border-2 border-black shadow-brutal">
-                        <div className="relative z-10 text-center max-w-2xl mx-auto">
-                            <h2 className="font-head text-3xl md:text-4xl font-bold mb-4">Never Miss an Update</h2>
-                            <p className="text-zinc-400 mb-8 text-lg">
-                                Get notified about new workshops, hackathons, and guest lectures directly in your inbox.
-                            </p>
-                            <div className="flex gap-2 max-w-md mx-auto">
-                                <input
-                                    type="email"
-                                    placeholder="Enter your email"
-                                    className="flex-1 px-4 py-3 rounded-lg border-2 border-zinc-700 bg-zinc-800 focus:border-white outline-none transition-colors"
-                                />
-                                <Button className="bg-white text-black font-bold px-6 border-2 border-transparent hover:border-black/20 hover:bg-gray-200">
-                                    Subscribe
-                                </Button>
-                            </div>
-                        </div>
 
-                        {/* Abstract shapes */}
-                        <div className="absolute top-0 left-0 w-64 h-64 bg-orange-500/20 blur-3xl rounded-full -translate-x-1/2 -translate-y-1/2"></div>
-                        <div className="absolute bottom-0 right-0 w-64 h-64 bg-blue-500/20 blur-3xl rounded-full translate-x-1/2 translate-y-1/2"></div>
-                    </div>
-                </section>
             </main>
         </>
     );
