@@ -58,11 +58,6 @@ export function EventCard({ event, hasRegistered = false }: EventProps) {
                         <div className="absolute top-4 right-4 bg-background border-2 border-black px-3 py-1 font-bold text-sm shadow-[2px_2px_0_0_rgba(0,0,0,1)] uppercase tracking-wider">
                             {event.eventType}
                         </div>
-                        {event.registrationCount !== undefined && (
-                            <div className="absolute top-4 left-4 bg-primary text-primary-foreground border-2 border-black px-3 py-1 font-bold text-sm shadow-[2px_2px_0_0_rgba(0,0,0,1)] tracking-wider flex items-center gap-2">
-                                <User className="w-4 h-4" /> {event.registrationCount} Registered
-                            </div>
-                        )}
                         {/* Hover Overlay */}
                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center">
                             <Button className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-black transition-colors font-bold shadow-none">
@@ -97,11 +92,6 @@ export function EventCard({ event, hasRegistered = false }: EventProps) {
                                 <span className="inline-flex items-center justify-center px-4 py-1.5 text-xs font-bold uppercase tracking-wider border-2 border-foreground rounded-full bg-primary text-primary-foreground shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
                                     {event.eventType}
                                 </span>
-                                {event.registrationCount !== undefined && (
-                                    <span className="inline-flex items-center justify-center gap-2 px-4 py-1.5 text-xs font-bold uppercase tracking-wider border-2 border-foreground rounded-full bg-muted text-foreground shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
-                                        <User className="w-4 h-4" /> {event.registrationCount} Registered
-                                    </span>
-                                )}
                             </div>
                             
                             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-head font-black mb-8 leading-tight text-foreground">

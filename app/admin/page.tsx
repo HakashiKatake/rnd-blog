@@ -392,11 +392,18 @@ export default function AdminPage() {
                                                 <h3 className="font-bold text-lg">{ev.title}</h3>
                                                 <p className="text-xs text-muted-foreground">{ev.eventType} • {ev.locationType} • {ev.location || 'TBA'}</p>
                                                 <p className="text-xs text-muted-foreground">{new Date(ev.startTime).toLocaleString()}</p>
-                                                <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${
-                                                    ev.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                                    ev.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                                    {ev.status}
-                                                </span>
+                                                <div className="flex gap-2 mt-1">
+                                                    <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full inline-block ${
+                                                        ev.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                        ev.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                                        {ev.status}
+                                                    </span>
+                                                    {ev.registrationCount !== undefined && (
+                                                        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full inline-block bg-blue-100 text-blue-800">
+                                                            {ev.registrationCount} Registrations
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="flex gap-2 flex-shrink-0">

@@ -26,7 +26,8 @@ export async function getAdminData() {
             },
             "events": *[_type == "event"] | order(startTime desc) {
                 _id, title, slug, status, eventType, locationType, location, startTime, endTime, image, registrationLink,
-                "organizer": organizer->{name}
+                "organizer": organizer->{name},
+                "registrationCount": count(*[_type == "eventRegistration" && event._ref == ^._id && status != "rejected"])
             }
           }`;
         const data = await client.withConfig({ useCdn: false }).fetch(query);
