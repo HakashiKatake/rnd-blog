@@ -25,9 +25,10 @@ interface EventProps {
         }
         registrationCount?: number
     }
+    hasRegistered?: boolean
 }
 
-export function EventCard({ event }: EventProps) {
+export function EventCard({ event, hasRegistered = false }: EventProps) {
     const startDate = new Date(event.startTime)
     const endDate = event.endTime ? new Date(event.endTime) : new Date(startDate.getTime() + 60 * 60 * 1000) // Default 1 hour
 
@@ -167,6 +168,7 @@ export function EventCard({ event }: EventProps) {
                                         <RegisterButton
                                             eventSlug={event.slug.current}
                                             isPast={new Date(event.startTime) < new Date()}
+                                            hasRegistered={hasRegistered}
                                         />
                                     </div>
                                 )}
@@ -218,6 +220,7 @@ export function EventCard({ event }: EventProps) {
                             <RegisterButton
                                 eventSlug={event.slug.current}
                                 isPast={new Date(event.startTime) < new Date()}
+                                hasRegistered={hasRegistered}
                             />
                         )}
                     </div>

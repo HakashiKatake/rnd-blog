@@ -8,9 +8,10 @@ import { toast } from 'sonner';
 interface RegisterButtonProps {
     eventSlug: string;
     isPast: boolean;
+    hasRegistered?: boolean;
 }
 
-export function RegisterButton({ eventSlug, isPast }: RegisterButtonProps) {
+export function RegisterButton({ eventSlug, isPast, hasRegistered }: RegisterButtonProps) {
     const { isSignedIn, isLoaded } = useUser();
     const router = useRouter();
 
@@ -30,6 +31,14 @@ export function RegisterButton({ eventSlug, isPast }: RegisterButtonProps) {
         return (
             <Button disabled className="w-full flex-1 opacity-50 cursor-not-allowed border-2 border-foreground bg-muted text-muted-foreground font-bold">
                 Event Ended
+            </Button>
+        );
+    }
+
+    if (hasRegistered) {
+        return (
+            <Button disabled className="w-full flex-1 opacity-50 cursor-not-allowed border-2 border-green-700 bg-green-100 text-green-800 font-bold">
+                Already Registered
             </Button>
         );
     }
