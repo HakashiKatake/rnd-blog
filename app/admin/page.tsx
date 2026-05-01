@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { client } from "@/lib/sanity/client";
 import {
     approvePost,
@@ -10,12 +10,17 @@ import {
     rejectCollaboration,
     approveEventRegistration,
     rejectEventRegistration,
+    approveEvent,
+    rejectEvent,
+    deleteEvent,
+    createOrUpdateEvent,
     getAdminData
 } from "../actions/admin";
 import { Button } from "@/components/retroui/Button";
 import { toast } from "sonner";
 import Link from "next/link";
-import { FaCheck, FaXmark, FaEye, FaScroll, FaHandshake, FaNewspaper, FaTicket, FaPaperclip, FaTrash } from "react-icons/fa6";
+import { getImageUrl } from "@/lib/sanity/client";
+import { FaCheck, FaXmark, FaEye, FaScroll, FaHandshake, FaNewspaper, FaTicket, FaPaperclip, FaTrash, FaCalendar, FaPen, FaPlus } from "react-icons/fa6";
 import * as Tabs from "@radix-ui/react-tabs";
 import * as Dialog from "@radix-ui/react-dialog";
 
@@ -34,7 +39,20 @@ export default function AdminPage() {
     const [quests, setQuests] = useState<any[]>([]);
     const [collaborations, setCollaborations] = useState<any[]>([]);
     const [registrations, setRegistrations] = useState<any[]>([]);
+    const [events, setEvents] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+
+    // Event Modal State
+    const [eventModalOpen, setEventModalOpen] = useState(false);
+    const [editingEvent, setEditingEvent] = useState<any | null>(null);
+    const [eventForm, setEventForm] = useState({
+        title: '', description: '', requirements: '', eventType: 'workshop',
+        locationType: 'physical', location: '', startTime: '', endTime: '',
+        registrationLink: '', status: 'pending'
+    });
+    const [eventImageFile, setEventImageFile] = useState<File | null>(null);
+    const [isSavingEvent, setIsSavingEvent] = useState(false);
+    const eventImageRef = useRef<HTMLInputElement>(null);
 
     // Email Modal State
     const [emailModalOpen, setEmailModalOpen] = useState(false);
@@ -56,7 +74,7 @@ export default function AdminPage() {
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        if (password === "333444") {
+        if (password === "#$%#$%") {
             setIsAuthenticated(true);
             sessionStorage.setItem("admin_auth", "true");
             fetchAllData();
@@ -74,6 +92,7 @@ export default function AdminPage() {
                 setQuests(result.data.quests);
                 setCollaborations(result.data.collaborations);
                 setRegistrations(result.data.registrations);
+                setEvents(result.data.events || []);
             } else {
                 toast.error(result.error || "Failed to fetch data");
             }
@@ -110,6 +129,55 @@ export default function AdminPage() {
             },
             error: "Failed to update quest",
         });
+    };
+
+    // --- Event Actions ---
+    const handleEventAction = async (id: string, action: "approve" | "reject" | "delete") => {
+        if (action === "delete") {
+            if (!confirm("Delete this event permanently?")) return;
+            toast.promise(deleteEvent(id), { loading: "Deleting...", success: () => { fetchAllData(); return "Event deleted"; }, error: "Failed" });
+        } else {
+            const fn = action === "approve" ? approveEvent : rejectEvent;
+            toast.promise(fn(id), { loading: "Updating...", success: () => { fetchAllData(); return `Event ${action}d!`; }, error: "Failed" });
+        }
+    };
+
+    const openEventModal = (event?: any) => {
+        if (event) {
+            setEditingEvent(event);
+            const toLocalDatetime = (iso: string) => iso ? iso.slice(0, 16) : '';
+            setEventForm({
+                title: event.title || '', description: event.description || '',
+                requirements: event.requirements || '', eventType: event.eventType || 'workshop',
+                locationType: event.locationType || 'physical', location: event.location || '',
+                startTime: toLocalDatetime(event.startTime), endTime: toLocalDatetime(event.endTime),
+                registrationLink: event.registrationLink || '', status: event.status || 'pending'
+            });
+        } else {
+            setEditingEvent(null);
+            setEventForm({ title: '', description: '', requirements: '', eventType: 'workshop', locationType: 'physical', location: '', startTime: '', endTime: '', registrationLink: '', status: 'pending' });
+        }
+        setEventImageFile(null);
+        setEventModalOpen(true);
+    };
+
+    const handleEventSave = async () => {
+        if (!eventForm.title || !eventForm.startTime) { toast.error("Title and Start Time required"); return; }
+        setIsSavingEvent(true);
+        let imageBase64: string | undefined, imageFilename: string | undefined, imageContentType: string | undefined;
+        if (eventImageFile) {
+            const reader = new FileReader();
+            imageBase64 = await new Promise(res => { reader.onload = e => res(e.target!.result as string); reader.readAsDataURL(eventImageFile); });
+            imageFilename = eventImageFile.name;
+            imageContentType = eventImageFile.type;
+        }
+        const result = await createOrUpdateEvent({
+            id: editingEvent?._id, ...eventForm,
+            imageBase64, imageFilename, imageContentType
+        });
+        setIsSavingEvent(false);
+        if (result.success) { toast.success(editingEvent ? "Event updated!" : "Event created!"); fetchAllData(); setEventModalOpen(false); }
+        else toast.error(result.error || "Failed to save event");
     };
 
     const handleCollabAction = async (id: string, action: "approve" | "reject") => {
@@ -285,33 +353,63 @@ export default function AdminPage() {
                     </div>
                 </div>
 
-                <Tabs.Root defaultValue="registrations" className="flex flex-col gap-6">
+                <Tabs.Root defaultValue="events" className="flex flex-col gap-6">
                     <Tabs.List className="flex gap-2 border-b-2 border-border pb-px overflow-x-auto">
-                        <Tabs.Trigger
-                            value="registrations"
-                            className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2 whitespace-nowrap"
-                        >
+                        <Tabs.Trigger value="events" className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2 whitespace-nowrap">
+                            <FaCalendar /> Events ({events.length})
+                        </Tabs.Trigger>
+                        <Tabs.Trigger value="registrations" className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2 whitespace-nowrap">
                             <FaTicket /> Registrations ({registrations.length})
                         </Tabs.Trigger>
-                        <Tabs.Trigger
-                            value="posts"
-                            className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2 whitespace-nowrap"
-                        >
+                        <Tabs.Trigger value="posts" className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2 whitespace-nowrap">
                             <FaNewspaper /> Posts ({posts.length})
                         </Tabs.Trigger>
-                        <Tabs.Trigger
-                            value="quests"
-                            className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2 whitespace-nowrap"
-                        >
+                        <Tabs.Trigger value="quests" className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2 whitespace-nowrap">
                             <FaScroll /> Quests ({quests.length})
                         </Tabs.Trigger>
-                        <Tabs.Trigger
-                            value="collabs"
-                            className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2 whitespace-nowrap"
-                        >
+                        <Tabs.Trigger value="collabs" className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2 whitespace-nowrap">
                             <FaHandshake /> Collaborations ({collaborations.length})
                         </Tabs.Trigger>
                     </Tabs.List>
+
+                    {/* EVENTS TAB */}
+                    <Tabs.Content value="events" className="bg-card border-2 border-border rounded-lg shadow-brutal overflow-hidden">
+                        <div className="p-4 border-b-2 border-border bg-muted/20 flex items-center justify-between">
+                            <h2 className="font-bold">Manage Events</h2>
+                            <Button size="sm" className="bg-primary text-primary-foreground border-black" onClick={() => openEventModal()}>
+                                <FaPlus /> New Event
+                            </Button>
+                        </div>
+                        {events.length === 0 ? (
+                            <div className="p-8 text-center text-muted-foreground">No events found.</div>
+                        ) : (
+                            <div className="divide-y divide-border">
+                                {events.map((ev) => (
+                                    <div key={ev._id} className="p-4 flex flex-col md:flex-row md:items-center justify-between hover:bg-muted/10 gap-4">
+                                        <div className="flex items-center gap-4">
+                                            {ev.image && <img src={getImageUrl(ev.image) || ''} alt={ev.title} className="h-16 w-12 object-cover rounded border-2 border-border flex-shrink-0" />}
+                                            <div>
+                                                <h3 className="font-bold text-lg">{ev.title}</h3>
+                                                <p className="text-xs text-muted-foreground">{ev.eventType} • {ev.locationType} • {ev.location || 'TBA'}</p>
+                                                <p className="text-xs text-muted-foreground">{new Date(ev.startTime).toLocaleString()}</p>
+                                                <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${
+                                                    ev.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                    ev.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                                    {ev.status}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2 flex-shrink-0">
+                                            <Button size="sm" variant="outline" onClick={() => openEventModal(ev)} title="Edit"><FaPen /></Button>
+                                            {ev.status !== 'approved' && <Button size="sm" className="bg-green-500 text-white border-green-700" onClick={() => handleEventAction(ev._id, 'approve')}><FaCheck /> Approve</Button>}
+                                            {ev.status !== 'rejected' && <Button size="sm" className="bg-red-500 text-white border-red-700" onClick={() => handleEventAction(ev._id, 'reject')}><FaXmark /> Reject</Button>}
+                                            <Button size="sm" className="bg-zinc-800 text-white border-zinc-900" onClick={() => handleEventAction(ev._id, 'delete')} title="Delete"><FaTrash /></Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </Tabs.Content>
 
                     {/* REGISTRATIONS TAB */}
                     <Tabs.Content value="registrations" className="bg-card border-2 border-border rounded-lg shadow-brutal overflow-hidden">
@@ -473,6 +571,80 @@ export default function AdminPage() {
 
                 </Tabs.Root>
             </div>
+
+            {/* Event Create/Edit Modal */}
+            <Dialog.Root open={eventModalOpen} onOpenChange={setEventModalOpen}>
+                <Dialog.Portal>
+                    <Dialog.Overlay className="fixed inset-0 bg-black/60 z-50 animate-in fade-in" />
+                    <Dialog.Content className="fixed left-[50%] top-[50%] z-50 w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] border-4 border-black bg-background p-6 shadow-brutal sm:rounded-xl max-h-[90vh] overflow-y-auto">
+                        <Dialog.Title className="text-2xl font-black mb-4 border-b-2 border-border pb-3">
+                            {editingEvent ? 'Edit Event' : 'Create New Event'}
+                        </Dialog.Title>
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="sm:col-span-2">
+                                    <label className="text-sm font-bold block mb-1">Title *</label>
+                                    <input value={eventForm.title} onChange={e => setEventForm(p => ({...p, title: e.target.value}))} className="w-full p-2 border-2 border-border rounded-lg bg-background focus:border-primary outline-none" placeholder="Event title" />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-bold block mb-1">Event Type</label>
+                                    <select value={eventForm.eventType} onChange={e => setEventForm(p => ({...p, eventType: e.target.value}))} className="w-full p-2 border-2 border-border rounded-lg bg-background">
+                                        {['workshop','hackathon','lecture','meetup','other'].map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-bold block mb-1">Status</label>
+                                    <select value={eventForm.status} onChange={e => setEventForm(p => ({...p, status: e.target.value}))} className="w-full p-2 border-2 border-border rounded-lg bg-background">
+                                        {['pending','approved','rejected'].map(s => <option key={s} value={s}>{s}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-bold block mb-1">Location Type</label>
+                                    <select value={eventForm.locationType} onChange={e => setEventForm(p => ({...p, locationType: e.target.value}))} className="w-full p-2 border-2 border-border rounded-lg bg-background">
+                                        {['physical','virtual','hybrid'].map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-bold block mb-1">Location / Link</label>
+                                    <input value={eventForm.location} onChange={e => setEventForm(p => ({...p, location: e.target.value}))} className="w-full p-2 border-2 border-border rounded-lg bg-background focus:border-primary outline-none" placeholder="Venue or meeting link" />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-bold block mb-1">Start Time *</label>
+                                    <input type="datetime-local" value={eventForm.startTime} onChange={e => setEventForm(p => ({...p, startTime: e.target.value}))} className="w-full p-2 border-2 border-border rounded-lg bg-background focus:border-primary outline-none" />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-bold block mb-1">End Time</label>
+                                    <input type="datetime-local" value={eventForm.endTime} onChange={e => setEventForm(p => ({...p, endTime: e.target.value}))} className="w-full p-2 border-2 border-border rounded-lg bg-background focus:border-primary outline-none" />
+                                </div>
+                                <div className="sm:col-span-2">
+                                    <label className="text-sm font-bold block mb-1">Registration Link (external)</label>
+                                    <input value={eventForm.registrationLink} onChange={e => setEventForm(p => ({...p, registrationLink: e.target.value}))} className="w-full p-2 border-2 border-border rounded-lg bg-background focus:border-primary outline-none" placeholder="https://..." />
+                                </div>
+                                <div className="sm:col-span-2">
+                                    <label className="text-sm font-bold block mb-1">Description</label>
+                                    <textarea value={eventForm.description} onChange={e => setEventForm(p => ({...p, description: e.target.value}))} rows={3} className="w-full p-2 border-2 border-border rounded-lg bg-background focus:border-primary outline-none resize-y" placeholder="Event description..." />
+                                </div>
+                                <div className="sm:col-span-2">
+                                    <label className="text-sm font-bold block mb-1">Requirements</label>
+                                    <textarea value={eventForm.requirements} onChange={e => setEventForm(p => ({...p, requirements: e.target.value}))} rows={2} className="w-full p-2 border-2 border-border rounded-lg bg-background focus:border-primary outline-none resize-y" placeholder="Prerequisites..." />
+                                </div>
+                                <div className="sm:col-span-2">
+                                    <label className="text-sm font-bold block mb-1">Event Poster / Image</label>
+                                    <input ref={eventImageRef} type="file" accept="image/*" onChange={e => setEventImageFile(e.target.files?.[0] || null)} className="w-full p-2 border-2 border-dashed border-border rounded-lg bg-background text-sm" />
+                                    {editingEvent?.image && !eventImageFile && <p className="text-xs text-muted-foreground mt-1">Current image will be kept unless you upload a new one.</p>}
+                                    {eventImageFile && <p className="text-xs text-green-600 mt-1">New image selected: {eventImageFile.name}</p>}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-3 mt-6 pt-4 border-t-2 border-border">
+                            <Button variant="outline" onClick={() => setEventModalOpen(false)} disabled={isSavingEvent}>Cancel</Button>
+                            <Button onClick={handleEventSave} disabled={isSavingEvent} className="bg-primary text-primary-foreground border-black">
+                                {isSavingEvent ? 'Saving...' : editingEvent ? 'Update Event' : 'Create Event'}
+                            </Button>
+                        </div>
+                    </Dialog.Content>
+                </Dialog.Portal>
+            </Dialog.Root>
 
             {/* Email Modal Dialog */}
             <Dialog.Root open={emailModalOpen} onOpenChange={setEmailModalOpen}>

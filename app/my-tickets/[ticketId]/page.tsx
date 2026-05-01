@@ -77,8 +77,8 @@ export default async function TicketPage(props: TicketPageProps) {
                 <div className="p-8 space-y-6 bg-white dark:bg-zinc-900">
                     <div className="text-center pb-6 border-b-2 border-dashed border-border">
                         <h2 className="text-2xl font-bold mb-2">{ticket.eventName}</h2>
-                        <Link href={`/events/${ticket.eventSlug}`} className="text-primary hover:underline text-sm font-bold">
-                            View Event Details
+                        <Link href={`/events`} className="text-primary hover:underline text-sm font-bold">
+                            View Event Hub
                         </Link>
                     </div>
 
@@ -99,7 +99,11 @@ export default async function TicketPage(props: TicketPageProps) {
                             </div>
                             <div>
                                 <p className="text-xs font-bold text-muted-foreground uppercase">Date & Time</p>
-                                <p className="font-bold">{new Date(ticket.startTime).toLocaleString()}</p>
+                                <p className="font-bold">
+                                    {new Date(ticket.startTime).getDate().toString().padStart(2, '0')}/
+                                    {(new Date(ticket.startTime).getMonth() + 1).toString().padStart(2, '0')}/
+                                    {new Date(ticket.startTime).getFullYear()} at {new Date(ticket.startTime).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                                </p>
                             </div>
                         </div>
 
