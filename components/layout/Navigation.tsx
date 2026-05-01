@@ -26,7 +26,6 @@ const navLinks = [
   { href: "/events", label: "Events", icon: <Calendar className="w-5 h-5" /> },
   { href: "/collaborate", label: "Collaborate", icon: <Handshake className="w-5 h-5" /> },
   { href: "/leaderboard", label: "Leaderboard", icon: <Trophy className="w-5 h-5" /> },
-  { href: "/admin", label: "Admin", icon: <User className="w-5 h-5" /> },
 ];
 
 export function Navigation() {

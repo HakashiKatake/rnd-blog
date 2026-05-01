@@ -4,10 +4,26 @@ import { EventCard } from "@/components/events/EventCard";
 import { Button } from "@/components/retroui/Button";
 import Link from "next/link";
 import { Calendar, Video, MapPin, Search, Filter } from "lucide-react";
+import { auth } from "@clerk/nextjs/server";
 
 export const revalidate = 60; // Revalidate every minute
 
 export default async function EventsPage() {
+    const { userId } = await auth();
+    let registeredEventIds: string[] = [];
+
+    if (userId) {
+        const userQuery = `*[_type == "user" && clerkId == "${userId}"][0]._id`;
+        const sanityUserId = await client.withConfig({ useCdn: false }).fetch(userQuery);
+        if (sanityUserId) {
+            const registrations = await client.withConfig({ useCdn: false }).fetch(
+                `*[_type == "eventRegistration" && user._ref == $sanityUserId]{ "eventId": event._ref }`,
+                { sanityUserId }
+            );
+            registeredEventIds = registrations.map((r: any) => r.eventId);
+        }
+    }
+
     const [events, pastEvents] = await Promise.all([
         client.withConfig({ useCdn: false }).fetch(queries.getUpcomingEvents),
         client.withConfig({ useCdn: false }).fetch(queries.getPastEvents),
@@ -78,7 +94,7 @@ export default async function EventsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {events.map((event: any) => (
                                 <div key={event._id} className="h-full">
-                                    <EventCard event={event} />
+                                    <EventCard event={event} hasRegistered={registeredEventIds.includes(event._id)} />
                                 </div>
                             ))}
                         </div>
@@ -112,7 +128,7 @@ export default async function EventsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 opacity-80 hover:opacity-100 transition-opacity">
                             {pastEvents.map((event: any) => (
                                 <div key={event._id} className="h-full grayscale hover:grayscale-0 transition-all duration-300">
-                                    <EventCard event={event} />
+                                    <EventCard event={event} hasRegistered={registeredEventIds.includes(event._id)} />
                                 </div>
                             ))}
                         </div>
