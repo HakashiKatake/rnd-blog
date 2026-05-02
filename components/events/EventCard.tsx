@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Calendar, MapPin, ExternalLink, Clock, User } from 'lucide-react'
+import { Calendar, MapPin, Clock, User } from 'lucide-react'
 import { Button } from '@/components/retroui/Button'
 import { getImageUrl } from '@/lib/sanity/client'
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "@/components/ui/dialog"
@@ -18,10 +18,10 @@ interface EventProps {
         startTime: string
         endTime?: string
         registrationLink?: string
-        image?: any
+        image?: unknown
         organizer?: {
             name: string
-            avatar?: any
+            avatar?: unknown
         }
         registrationCount?: number
     }
@@ -39,11 +39,11 @@ export function EventCard({ event, hasRegistered = false }: EventProps) {
     const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${formatGoogleCalendarDate(startDate)}/${formatGoogleCalendarDate(endDate)}&details=${encodeURIComponent(event.description || "")}&location=${encodeURIComponent(event.location || "")}`
 
     return (
-        <div className="bg-card text-card-foreground border-2 border-border shadow-brutal hover:shadow-brutal-sm transition-all rounded-xl overflow-hidden flex flex-col h-full group">
+        <div className="bg-card text-card-foreground border-2 border-border shadow-brutal hover:shadow-brutal-sm transition-all rounded-[1.5rem] overflow-hidden flex flex-col h-full group">
             {/* Image Section */}
             <Dialog>
                 <DialogTrigger asChild>
-                    <div className="h-96 bg-zinc-100 dark:bg-zinc-950 relative overflow-hidden border-b-2 border-border flex items-center justify-center cursor-pointer group/image">
+                    <div className="h-64 sm:h-80 md:h-96 bg-zinc-100 dark:bg-zinc-950 relative overflow-hidden border-b-2 border-border flex items-center justify-center cursor-pointer group/image">
                         {event.image ? (
                             <img
                                 src={getImageUrl(event.image) || ""}
@@ -169,13 +169,13 @@ export function EventCard({ event, hasRegistered = false }: EventProps) {
             </Dialog>
 
             {/* Content Section */}
-            <div className="p-6 flex-1 flex flex-col">
+            <div className="p-5 sm:p-6 flex-1 flex flex-col">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 font-medium">
                     <Clock className="h-4 w-4" />
                     {startDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </div>
 
-                <h3 className="font-head text-2xl font-bold mb-3 line-clamp-2 min-h-[4rem]">
+                <h3 className="font-head text-xl sm:text-2xl font-bold mb-3 line-clamp-2 min-h-[3.2rem] sm:min-h-[4rem]">
                     {event.title}
                 </h3>
 

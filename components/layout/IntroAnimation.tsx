@@ -13,11 +13,15 @@ export function IntroAnimation({ children }: { children: React.ReactNode }) {
         // Check if intro has already played in this session
         const introPlayed = sessionStorage.getItem('introPlayed')
         if (!introPlayed) {
-            setShowIntro(true)
+            requestAnimationFrame(() => {
+                setShowIntro(true)
+            })
             // Lock scrolling while animation is playing
             document.body.style.overflow = 'hidden'
         } else {
-            setAnimationComplete(true)
+            requestAnimationFrame(() => {
+                setAnimationComplete(true)
+            })
         }
 
         return () => {
@@ -38,8 +42,8 @@ export function IntroAnimation({ children }: { children: React.ReactNode }) {
     const sparks = Array.from({ length: 12 }).map((_, i) => ({
         id: i,
         angle: (i / 12) * Math.PI * 2,
-        distance: Math.random() * 60 + 80,
-        size: Math.random() * 4 + 2,
+        distance: 82 + (i % 4) * 14,
+        size: 2 + (i % 3),
         delay: 0.1 * i,
     }))
 
@@ -149,18 +153,15 @@ export function IntroAnimation({ children }: { children: React.ReactNode }) {
                 initial={false}
                 animate={{
                     opacity: animationComplete ? 1 : 0,
-                    scale: animationComplete ? 1 : 0.98,
-                    filter: animationComplete ? 'blur(0px)' : 'blur(5px)'
                 }}
                 transition={{
-                    duration: 0.8,
+                    duration: 0.5,
                     ease: [0.16, 1, 0.3, 1],
                 }}
-                className="w-full h-full origin-top"
+                className="w-full h-full"
             >
                 {children}
             </motion.div>
         </>
     )
 }
-

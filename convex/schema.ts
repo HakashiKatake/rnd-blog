@@ -5,6 +5,12 @@ const channelKind = v.union(v.literal("announcements"), v.literal("standard"));
 const workspaceRole = v.union(v.literal("host"), v.literal("member"));
 
 export default defineSchema({
+  siteVisitors: defineTable({
+    visitorId: v.string(),
+    firstSeenAt: v.number(),
+    lastSeenAt: v.number(),
+  }).index("by_visitor_id", ["visitorId"]),
+
   channels: defineTable({
     workspaceId: v.string(),
     slug: v.string(),
