@@ -43,7 +43,7 @@ export function EventCard({ event, hasRegistered = false }: EventProps) {
             {/* Image Section */}
             <Dialog>
                 <DialogTrigger asChild>
-                    <div className="h-96 bg-black relative overflow-hidden border-b-2 border-border flex items-center justify-center cursor-pointer group/image">
+                    <div className="h-96 bg-zinc-100 dark:bg-zinc-950 relative overflow-hidden border-b-2 border-border flex items-center justify-center cursor-pointer group/image">
                         {event.image ? (
                             <img
                                 src={getImageUrl(event.image) || ""}
