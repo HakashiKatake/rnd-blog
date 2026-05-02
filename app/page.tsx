@@ -18,6 +18,7 @@ import {
   Lightbulb,
   Globe,
 } from "lucide-react";
+import { VisitorCounter } from "@/components/landing/VisitorCounter";
 
 export default async function Home() {
   const { userId } = await auth();
@@ -196,6 +197,12 @@ export default async function Home() {
           </div>
         </section>
 
+        {/* Live Visitor Counter */}
+        <section className="container mx-auto mb-16 px-4">
+          <div className="mx-auto max-w-2xl">
+            <VisitorCounter enabled={Boolean(process.env.NEXT_PUBLIC_CONVEX_URL)} />
+          </div>
+        </section>
 
         {/* Footer */}
         <footer className="border-t border-border bg-card py-12">

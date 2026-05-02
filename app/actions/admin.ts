@@ -74,6 +74,33 @@ export async function deleteEvent(eventId: string) {
     }
 }
 
+export async function getHomeSettings() {
+    try {
+        const query = `*[_type == "homeSettings"] | order(_updatedAt desc)[0]`;
+        const data = await client.withConfig({ useCdn: false }).fetch(query);
+        return { success: true, data };
+    } catch (error) {
+        console.error("Failed to fetch home settings:", error);
+        return { success: false, error: "Failed to fetch home settings" };
+    }
+}
+
+export async function updateHomeSettings(id: string | undefined, payload: any) {
+    try {
+        if (id) {
+            await client.patch(id).set(payload).commit();
+        } else {
+            await client.create({ _type: 'homeSettings', ...payload });
+        }
+        revalidatePath("/");
+        revalidatePath("/admin");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to update home settings:", error);
+        return { success: false, error: "Failed to update home settings" };
+    }
+}
+
 export interface EventPayload {
     id?: string;
     title: string;
