@@ -12,12 +12,12 @@ export const client = createClient({
 // Helper for generating image URLs
 const builder = imageUrlBuilder(client);
 
-export function urlFor(source: any) {
-  return builder.image(source);
+export function urlFor(source: unknown) {
+  return builder.image(source as Parameters<typeof builder.image>[0]);
 }
 
 // Helper to get image URL (handles both Sanity images and external URLs)
-export function getImageUrl(source: any): string | null {
+export function getImageUrl(source: unknown): string | null {
   if (!source) return null;
 
   // If it's a string (external URL like Clerk avatar), return directly
@@ -26,7 +26,11 @@ export function getImageUrl(source: any): string | null {
   }
 
   // If it's a Sanity image reference, use urlFor
-  if (source._type === "image" || source.asset) {
+  if (
+    typeof source === "object" &&
+    source !== null &&
+    ("_type" in source || "asset" in source)
+  ) {
     return urlFor(source).url();
   }
 
@@ -179,11 +183,13 @@ export const queries = {
     id: string,
   ) => `*[_type == "collaboration" && _id == "${id}"][0] {
     _id,
+    _createdAt,
     projectName,
     description,
     skillsNeeded,
     duration,
     commitment,
+    maxPositions,
     status,
     githubRepo,
     designDoc,
@@ -198,6 +204,7 @@ export const queries = {
     "applicants": applicants[] {
         _key,
         status,
+        applicationText,
         "user": user->{_id, name, avatar, tier, university, clerkId}
     }
   }`,

@@ -1,10 +1,13 @@
 import { Navigation } from "@/components/layout/Navigation";
 import { Hero } from "@/components/landing/Hero";
 import { BentoGrid, BentoCard } from "@/components/landing/BentoGrid";
-import { Button } from "@/components/retroui/Button";
-import Link from "next/link";
+import {
+  AnnouncementStrip,
+  type AnnouncementItem,
+} from "@/components/landing/AnnouncementStrip";
 import { auth } from "@clerk/nextjs/server";
 import { getOrCreateUser } from "@/lib/auth/user";
+import { client as sanityClient } from "@/sanity/lib/client";
 import {
   FileText,
   Rocket,
@@ -14,7 +17,6 @@ import {
   Layers,
   Lightbulb,
   Globe,
-  ArrowRight,
 } from "lucide-react";
 
 export default async function Home() {
@@ -23,6 +25,35 @@ export default async function Home() {
   if (userId) {
     await getOrCreateUser();
   }
+
+  const homePageData = await sanityClient.fetch<{
+    announcementStripEnabled?: boolean;
+    announcements?: AnnouncementItem[];
+    approvedPosts: number;
+    activeQuests: number;
+    approvedEvents: number;
+  }>(
+    `{
+      "announcementStripEnabled": *[_type == "homeSettings"] | order(_updatedAt desc)[0].announcementStripEnabled,
+      "announcements": *[_type == "homeSettings"] | order(_updatedAt desc)[0].announcements[
+        enabled == true &&
+        (!defined(startAt) || dateTime(startAt) <= now()) &&
+        (!defined(endAt) || dateTime(endAt) >= now())
+      ]{
+        _key,
+        enabled,
+        eyebrow,
+        text,
+        ctaLabel,
+        href,
+        startAt,
+        endAt
+      },
+      "approvedPosts": count(*[_type == "post" && status == "approved"]),
+      "activeQuests": count(*[_type == "quest" && status in ["open", "active"]]),
+      "approvedEvents": count(*[_type == "event" && status == "approved"])
+    }`,
+  );
 
   const features = [
     {
@@ -78,20 +109,36 @@ export default async function Home() {
     <>
       <Navigation />
       <main className="min-h-screen bg-background text-foreground">
-        <Hero />
+        {homePageData.announcementStripEnabled &&
+        (homePageData.announcements || []).length > 0 ? (
+          <AnnouncementStrip announcements={homePageData.announcements || []} />
+        ) : null}
+
+        <Hero
+          stats={{
+            approvedPosts: homePageData.approvedPosts,
+            activeQuests: homePageData.activeQuests,
+            approvedEvents: homePageData.approvedEvents,
+          }}
+          convexEnabled={Boolean(process.env.NEXT_PUBLIC_CONVEX_URL)}
+        />
 
         {/* Features Grid - Bento Style */}
-        <section className="container mx-auto px-4 py-20">
-          <div className="text-center mb-16">
-            <h2 className="font-head text-4xl lg:text-6xl font-bold mb-4">
+        <section className="container mx-auto px-4 py-14 sm:py-20">
+          <div className="mb-8 text-left sm:mb-16 sm:text-center">
+            <div className="mb-4 inline-flex items-center rounded-full border-2 border-brutal bg-card px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] shadow-brutal-sm">
+              Built to hook curious engineers
+            </div>
+            <h2 className="font-head text-3xl font-bold mb-4 sm:text-4xl lg:text-6xl">
               Why{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
                 SPARK
               </span>
               ?
             </h2>
-            <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
-              Everything you need to accelerate your engineering journey.
+            <p className="max-w-2xl text-base text-muted-foreground sm:mx-auto sm:text-xl">
+              Publish sharp engineering stories, discover real opportunities,
+              and grow a portfolio people actually want to read.
             </p>
           </div>
 
@@ -103,44 +150,44 @@ export default async function Home() {
         </section>
 
         {/* Stats Section */}
-        <section className="container mx-auto px-4 py-24 mb-16">
-          <div className="bg-card text-card-foreground border-2 border-brutal rounded-3xl p-12 md:p-16 relative overflow-hidden shadow-brutal">
+        <section className="container mx-auto mb-16 px-4 py-6 sm:py-16">
+          <div className="relative overflow-hidden rounded-3xl border-2 border-brutal bg-card p-6 text-card-foreground shadow-brutal sm:p-10 md:p-16">
             <div className="absolute top-0 right-0 p-32 bg-primary/10 rounded-full blur-3xl opacity-20"></div>
             <div className="absolute bottom-0 left-0 p-32 bg-primary/10 rounded-full blur-3xl opacity-20"></div>
 
-            <div className="relative z-10 text-center mb-16">
-              <h2 className="font-head text-3xl md:text-5xl font-bold mb-4">
+            <div className="relative z-10 mb-8 text-left sm:mb-16 sm:text-center">
+              <h2 className="font-head text-3xl font-bold mb-4 md:text-5xl">
                 Join the Movement
               </h2>
-              <p className="text-muted-foreground text-lg">
-                Growing faster every day.
+              <p className="text-base text-muted-foreground sm:text-lg">
+                Students, builders, and club projects growing together.
               </p>
             </div>
 
-            <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-12 text-center divide-y md:divide-y-0 md:divide-x divide-border">
-              <div className="pt-8 md:pt-0">
-                <div className="flex justify-center mb-4 text-orange-500">
+            <div className="relative z-10 grid grid-cols-1 gap-6 text-left sm:gap-8 md:grid-cols-3 md:gap-12 md:text-center md:divide-x md:divide-y-0 divide-border">
+              <div className="rounded-2xl border-2 border-brutal bg-background/80 p-5 shadow-brutal-sm md:border-0 md:bg-transparent md:p-0 md:shadow-none">
+                <div className="mb-4 flex justify-start text-orange-500 md:justify-center">
                   <Users size={32} />
                 </div>
-                <div className="text-5xl md:text-6xl font-head font-bold mb-2">
+                <div className="mb-2 font-head text-4xl font-bold sm:text-5xl md:text-6xl">
                   500+
                 </div>
                 <p className="text-muted-foreground">Engineering Students</p>
               </div>
-              <div className="pt-8 md:pt-0 pl-0 md:pl-8">
-                <div className="flex justify-center mb-4 text-blue-500">
+              <div className="rounded-2xl border-2 border-brutal bg-background/80 p-5 shadow-brutal-sm md:border-0 md:bg-transparent md:p-0 md:pl-8 md:shadow-none">
+                <div className="mb-4 flex justify-start text-blue-500 md:justify-center">
                   <Layers size={32} />
                 </div>
-                <div className="text-5xl md:text-6xl font-head font-bold mb-2">
+                <div className="mb-2 font-head text-4xl font-bold sm:text-5xl md:text-6xl">
                   200+
                 </div>
                 <p className="text-muted-foreground">Research Posts</p>
               </div>
-              <div className="pt-8 md:pt-0 pl-0 md:pl-8">
-                <div className="flex justify-center mb-4 text-green-500">
+              <div className="rounded-2xl border-2 border-brutal bg-background/80 p-5 shadow-brutal-sm md:border-0 md:bg-transparent md:p-0 md:pl-8 md:shadow-none">
+                <div className="mb-4 flex justify-start text-green-500 md:justify-center">
                   <Lightbulb size={32} />
                 </div>
-                <div className="text-5xl md:text-6xl font-head font-bold mb-2">
+                <div className="mb-2 font-head text-4xl font-bold sm:text-5xl md:text-6xl">
                   50+
                 </div>
                 <p className="text-muted-foreground">Collaborative Quests</p>
@@ -152,14 +199,14 @@ export default async function Home() {
 
         {/* Footer */}
         <footer className="border-t border-border bg-card py-12">
-          <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-2 font-head font-bold text-xl">
+          <div className="container mx-auto flex flex-col gap-6 px-4 text-center md:flex-row md:items-center md:justify-between md:text-left">
+            <div className="flex items-center justify-center gap-2 font-head text-xl font-bold md:justify-start">
               <Globe className="h-5 w-5" /> SPARK
             </div>
             <p className="text-neutral-500 text-sm">
               © {new Date().getFullYear()} ITM RnD Club. All rights reserved.
             </p>
-            <div className="flex gap-6 text-sm font-medium text-neutral-600">
+            <div className="flex flex-wrap justify-center gap-6 text-sm font-medium text-neutral-600 md:justify-end">
               <a href="#" className="hover:text-black transition-colors">
                 Privacy
               </a>

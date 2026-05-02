@@ -159,11 +159,20 @@
 
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-background text-foreground font-body antialiased;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02";
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  @media (max-width: 767px) {
+    body {
+      padding-bottom: calc(5.85rem + env(safe-area-inset-bottom));
+    }
   }
 
   /* Custom Scrollbar for Webkit */
@@ -217,6 +226,25 @@
 
 .animate-spark-burst {
   animation: spark-burst 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes announcement-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.announcement-marquee {
+  animation: announcement-marquee 28s linear infinite;
+  will-change: transform;
+}
+
+.announcement-marquee:hover {
+  animation-play-state: paused;
 }
 
 /* Prose Styling for Markdown */

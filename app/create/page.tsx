@@ -18,13 +18,17 @@ export default async function CreatePage() {
       <main className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="font-head text-4xl font-bold mb-2">
-              Create Your <span className="text-primary">Research Post</span> ⚡
+          <div className="mb-8 max-w-3xl">
+            <div className="mb-4 inline-flex items-center rounded-full border-2 border-brutal bg-card px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] shadow-brutal-sm">
+              Community publishing
+            </div>
+            <h1 className="font-head text-4xl font-bold mb-3">
+              Create Your <span className="text-primary">Blog Post</span> ⚡
             </h1>
-            <p className="text-muted-foreground">
-              Share your engineering projects, research, and innovations with
-              the community.
+            <p className="text-muted-foreground text-base sm:text-lg">
+              Share your ideas, builds, experiments, and engineering stories
+              with the community. Club moderators review and approve posts
+              before they go live on SPARK.
             </p>
           </div>
 

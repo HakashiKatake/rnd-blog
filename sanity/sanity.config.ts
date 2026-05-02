@@ -3,6 +3,7 @@ import { structureTool } from 'sanity/structure'
 import { visionTool } from '@sanity/vision'
 import { markdownSchema } from 'sanity-plugin-markdown'
 import { schemaTypes } from './schemas'
+import { structure } from './structure'
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET
@@ -21,7 +22,7 @@ export default defineConfig({
     projectId,
     dataset,
 
-    plugins: [structureTool(), visionTool(), markdownSchema()],
+    plugins: [structureTool({ structure }), visionTool(), markdownSchema()],
 
     schema: {
         types: schemaTypes,

@@ -24,7 +24,7 @@ export const WorkspaceBoard = memo(function WorkspaceBoard({ collaborationId }: 
   if (!collaborationId) return null;
   
   return (
-    <div className="w-full h-full relative border-2 border-black rounded-lg overflow-hidden bg-white shadow-[3px_3px_0_0_rgba(0,0,0,1)]">
+    <div className="relative h-full w-full overflow-hidden bg-white">
       <div className="absolute inset-0 z-0">
         <TldrawComponent 
           key={collaborationId} 
