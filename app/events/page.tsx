@@ -53,40 +53,33 @@ export default async function EventsPage() {
             <Navigation />
             <main className="min-h-screen bg-background">
                 {/* Header Section */}
-                <section className="relative overflow-hidden border-b-4 border-black bg-[radial-gradient(circle_at_top_left,rgba(255,107,53,0.12),transparent_35%),linear-gradient(180deg,rgba(255,107,53,0.06),transparent)] py-14 sm:py-20">
-                    <div className="container mx-auto px-4 relative z-10">
-                        <div className="max-w-4xl">
-                            <div className="mb-4 inline-flex items-center rounded-full border-2 border-brutal bg-card px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] shadow-brutal-sm">
-                                Live sessions, workshops, and club drops
-                            </div>
-                            <h1 className="font-head text-4xl md:text-7xl font-bold mb-5 relative inline-block leading-[0.98]">
-                                Events & <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
-                                    Workshops
-                                </span>
-                            </h1>
-                            <p className="max-w-2xl text-base text-muted-foreground mb-8 font-medium sm:text-xl">
-                                Join exclusive workshops, collaborate on projects, and learn from industry experts.
-                            </p>
-
-                            <div className="grid grid-cols-2 gap-3 sm:flex sm:gap-4 sm:flex-wrap">
-                                <Link href="#events-grid">
-                                    <Button className="h-14 w-full font-bold border-2 border-black bg-primary text-primary-foreground shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brutal-sm transition-all text-base sm:text-lg px-5 sm:px-8">
-                                        Explore Calendar
-                                    </Button>
-                                </Link>
-                                <Link href="/events/propose">
-                                    <Button variant="outline" className="h-14 w-full font-bold border-2 border-black bg-card text-card-foreground shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brutal-sm transition-all text-base sm:text-lg px-5 sm:px-8">
-                                        Host an Event
-                                    </Button>
-                                </Link>
-                            </div>
+                <section className="border-b-4 border-black bg-accent/10 py-12">
+                    <div className="container mx-auto px-4">
+                        <div className="mb-4 inline-flex items-center rounded-full border-2 border-brutal bg-card px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] shadow-brutal-sm">
+                            Live sessions, workshops, and club drops
                         </div>
-                    </div>
+                        <h1 className="font-head text-4xl lg:text-6xl font-bold mb-4">
+                            Events &{" "}
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
+                                Workshops
+                            </span>
+                        </h1>
+                        <p className="text-lg text-muted-foreground max-w-2xl mb-8">
+                            Join exclusive workshops, collaborate on projects, and learn from industry experts.
+                        </p>
 
-                    {/* Background Decorations */}
-                    <div className="absolute top-20 right-20 opacity-10 rotate-12 md:block hidden">
-                        <Calendar size={300} strokeWidth={1} />
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <Link href="#events-grid">
+                                <Button className="font-bold border-2 border-black bg-primary text-primary-foreground shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brutal-sm transition-all text-base px-6 py-2">
+                                    Explore Calendar
+                                </Button>
+                            </Link>
+                            <Link href="/events/propose">
+                                <Button variant="outline" className="font-bold border-2 border-black bg-card text-card-foreground shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brutal-sm transition-all text-base px-6 py-2">
+                                    Host an Event
+                                </Button>
+                            </Link>
+                        </div>
                     </div>
                 </section>
 

@@ -14,13 +14,15 @@ import {
     rejectEvent,
     deleteEvent,
     createOrUpdateEvent,
-    getAdminData
+    getAdminData,
+    getHomeSettings,
+    updateHomeSettings
 } from "../actions/admin";
 import { Button } from "@/components/retroui/Button";
 import { toast } from "sonner";
 import Link from "next/link";
 import { getImageUrl } from "@/lib/sanity/client";
-import { FaCheck, FaXmark, FaEye, FaScroll, FaHandshake, FaNewspaper, FaTicket, FaPaperclip, FaTrash, FaCalendar, FaPen, FaPlus, FaFileCsv, FaPrint } from "react-icons/fa6";
+import { FaCheck, FaXmark, FaEye, FaScroll, FaHandshake, FaNewspaper, FaTicket, FaPaperclip, FaTrash, FaCalendar, FaPen, FaPlus, FaFileCsv, FaPrint, FaBullhorn } from "react-icons/fa6";
 import * as Tabs from "@radix-ui/react-tabs";
 import * as Dialog from "@radix-ui/react-dialog";
 
@@ -41,6 +43,10 @@ export default function AdminPage() {
     const [registrations, setRegistrations] = useState<any[]>([]);
     const [events, setEvents] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+
+    // Home Settings State
+    const [homeSettings, setHomeSettings] = useState<any>(null);
+    const [isSavingSettings, setIsSavingSettings] = useState(false);
 
     // Event Modal State
     const [eventModalOpen, setEventModalOpen] = useState(false);
@@ -86,7 +92,7 @@ export default function AdminPage() {
     const fetchAllData = async () => {
         setIsLoading(true);
         try {
-            const result = await getAdminData();
+            const [result, settingsResult] = await Promise.all([getAdminData(), getHomeSettings()]);
             if (result.success && result.data) {
                 setPosts(result.data.posts);
                 setQuests(result.data.quests);
@@ -96,12 +102,56 @@ export default function AdminPage() {
             } else {
                 toast.error(result.error || "Failed to fetch data");
             }
+            if (settingsResult.success && settingsResult.data) {
+                setHomeSettings(settingsResult.data);
+            }
         } catch (err) {
             console.error(err);
             toast.error("Failed to fetch data");
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleSaveHomeSettings = async () => {
+        setIsSavingSettings(true);
+        const payload = {
+            announcementStripEnabled: homeSettings?.announcementStripEnabled || false,
+            announcements: homeSettings?.announcements || []
+        };
+        const result = await updateHomeSettings(homeSettings?._id, payload);
+        setIsSavingSettings(false);
+        if (result.success) {
+            toast.success("Home settings saved!");
+            fetchAllData();
+        } else {
+            toast.error(result.error || "Failed to save settings");
+        }
+    };
+
+    const handleAddAnnouncement = () => {
+        setHomeSettings((prev: any) => ({
+            ...prev,
+            announcements: [
+                ...(prev?.announcements || []),
+                { _key: Date.now().toString(), enabled: true, eyebrow: 'New', text: '', ctaLabel: 'Learn more', href: '' }
+            ]
+        }));
+    };
+
+    const handleRemoveAnnouncement = (index: number) => {
+        setHomeSettings((prev: any) => ({
+            ...prev,
+            announcements: prev.announcements.filter((_: any, i: number) => i !== index)
+        }));
+    };
+
+    const updateAnnouncement = (index: number, field: string, value: any) => {
+        setHomeSettings((prev: any) => {
+            const newAnnouncements = [...(prev.announcements || [])];
+            newAnnouncements[index] = { ...newAnnouncements[index], [field]: value };
+            return { ...prev, announcements: newAnnouncements };
+        });
     };
 
     // --- Actions ---
@@ -472,6 +522,9 @@ export default function AdminPage() {
                         <Tabs.Trigger value="collabs" className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2 whitespace-nowrap">
                             <FaHandshake /> Collaborations ({collaborations.length})
                         </Tabs.Trigger>
+                        <Tabs.Trigger value="announcements" className="px-4 py-2 font-bold text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-4 data-[state=active]:border-primary -mb-[3px] transition-all flex items-center gap-2 whitespace-nowrap">
+                            <FaBullhorn /> Announcements
+                        </Tabs.Trigger>
                     </Tabs.List>
 
                     {/* EVENTS TAB */}
@@ -678,6 +731,79 @@ export default function AdminPage() {
                                 ))}
                             </div>
                         )}
+                    </Tabs.Content>
+
+                    {/* ANNOUNCEMENTS TAB */}
+                    <Tabs.Content value="announcements" className="bg-card border-2 border-border rounded-lg shadow-brutal overflow-hidden">
+                        <div className="p-4 border-b-2 border-border bg-muted/20 flex justify-between items-center">
+                            <h2 className="font-bold">Manage Home Settings</h2>
+                            <Button size="sm" className="bg-primary text-primary-foreground border-black" onClick={handleSaveHomeSettings} disabled={isSavingSettings}>
+                                {isSavingSettings ? 'Saving...' : 'Save Settings'}
+                            </Button>
+                        </div>
+                        <div className="p-6 space-y-8">
+                            {/* Toggle Strip */}
+                            <div className="flex items-center gap-4 border-b-2 border-border pb-6">
+                                <label className="flex items-center gap-2 cursor-pointer font-bold text-lg">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={homeSettings?.announcementStripEnabled || false} 
+                                        onChange={(e) => setHomeSettings((p: any) => ({...p, announcementStripEnabled: e.target.checked}))}
+                                        className="h-5 w-5 rounded border-2 border-border text-primary focus:ring-primary"
+                                    />
+                                    Enable Announcement Strip
+                                </label>
+                            </div>
+
+                            {/* Announcements List */}
+                            <div className={!homeSettings?.announcementStripEnabled ? "opacity-50 pointer-events-none" : ""}>
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold text-lg">Announcements ({homeSettings?.announcements?.length || 0})</h3>
+                                    <Button size="sm" variant="outline" className="border-black" onClick={handleAddAnnouncement}>
+                                        <FaPlus /> Add Announcement
+                                    </Button>
+                                </div>
+                                
+                                <div className="space-y-4">
+                                    {(homeSettings?.announcements || []).map((ann: any, idx: number) => (
+                                        <div key={ann._key || idx} className="border-2 border-border p-4 rounded-lg bg-background flex flex-col gap-3 relative shadow-brutal-sm">
+                                            <Button size="sm" className="absolute top-2 right-2 bg-red-500 text-white h-8 w-8 p-0 border-black" onClick={() => handleRemoveAnnouncement(idx)}>
+                                                <FaTrash />
+                                            </Button>
+                                            
+                                            <label className="flex items-center gap-2 font-bold text-sm w-max cursor-pointer">
+                                                <input type="checkbox" checked={ann.enabled} onChange={(e) => updateAnnouncement(idx, 'enabled', e.target.checked)} className="h-4 w-4" />
+                                                Enabled
+                                            </label>
+                                            
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                                <div>
+                                                    <label className="text-xs font-bold block mb-1">Badge (Eyebrow)</label>
+                                                    <input className="w-full border-2 border-border p-2 rounded text-sm bg-muted/20 focus:outline-none focus:border-primary" value={ann.eyebrow || ''} onChange={e => updateAnnouncement(idx, 'eyebrow', e.target.value)} placeholder="e.g. NEW" />
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-bold block mb-1">Text *</label>
+                                                    <input className="w-full border-2 border-border p-2 rounded text-sm bg-muted/20 focus:outline-none focus:border-primary" value={ann.text || ''} onChange={e => updateAnnouncement(idx, 'text', e.target.value)} placeholder="Announcement content..." />
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-bold block mb-1">CTA Label</label>
+                                                    <input className="w-full border-2 border-border p-2 rounded text-sm bg-muted/20 focus:outline-none focus:border-primary" value={ann.ctaLabel || ''} onChange={e => updateAnnouncement(idx, 'ctaLabel', e.target.value)} placeholder="e.g. Register Now" />
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-bold block mb-1">CTA Link (URL or path)</label>
+                                                    <input className="w-full border-2 border-border p-2 rounded text-sm bg-muted/20 focus:outline-none focus:border-primary" value={ann.href || ''} onChange={e => updateAnnouncement(idx, 'href', e.target.value)} placeholder="https://..." />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {(!homeSettings?.announcements || homeSettings.announcements.length === 0) && (
+                                        <div className="text-center p-12 border-2 border-dashed border-border rounded-lg text-muted-foreground font-bold">
+                                            No announcements added yet.
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     </Tabs.Content>
 
                 </Tabs.Root>

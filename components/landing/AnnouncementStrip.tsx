@@ -23,17 +23,21 @@ function AnnouncementChip({
       announcement.href.startsWith("https://"));
 
   const content = (
-    <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-2 text-white backdrop-blur-sm sm:gap-3 sm:px-4">
-      <span className="rounded-full border border-white/30 bg-black/15 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.22em] text-white/90 sm:px-2.5 sm:text-[10px] sm:tracking-[0.28em]">
-        {announcement.eyebrow || "New"}
-      </span>
-      <span className="max-w-[8.2rem] truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-white sm:max-w-none sm:text-sm sm:tracking-[0.16em] md:text-base">
+    <span className="inline-flex items-center gap-4 px-8 py-3 text-black">
+      {announcement.eyebrow && (
+        <span className="border-2 border-black bg-white px-3 py-1 text-xs font-black uppercase tracking-widest shadow-[3px_3px_0px_rgba(0,0,0,1)]">
+          {announcement.eyebrow}
+        </span>
+      )}
+      <span className="font-head text-lg sm:text-xl font-black uppercase tracking-[0.2em]">
         {announcement.text}
       </span>
-      <span className="rounded-full border border-white/30 bg-black/15 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-white sm:px-2.5 sm:text-[10px] sm:tracking-[0.24em]">
-        {announcement.ctaLabel || "Learn more"}
-      </span>
-      <ArrowRight className="h-3.5 w-3.5 text-white sm:h-4 sm:w-4" />
+      {announcement.ctaLabel && (
+        <span className="border-2 border-black bg-[#ff6b35] px-3 py-1 text-xs font-black uppercase tracking-widest text-white shadow-[3px_3px_0px_rgba(0,0,0,1)] transition-all">
+          {announcement.ctaLabel}
+        </span>
+      )}
+      <ArrowRight className="h-6 w-6" strokeWidth={3} />
     </span>
   );
 
@@ -47,7 +51,7 @@ function AnnouncementChip({
         href={announcement.href}
         target="_blank"
         rel="noreferrer"
-        className="inline-flex"
+        className="inline-flex hover:opacity-80 transition-opacity"
       >
         {content}
       </a>
@@ -55,7 +59,7 @@ function AnnouncementChip({
   }
 
   return (
-    <Link href={announcement.href} className="inline-flex">
+    <Link href={announcement.href} className="inline-flex hover:opacity-80 transition-opacity">
       {content}
     </Link>
   );
@@ -73,7 +77,7 @@ export function AnnouncementStrip({
   const repeatedAnnouncements = Array.from({ length: 4 }).flatMap(() => announcements);
 
   const track = (
-    <div className="flex min-w-max items-center gap-4 px-4 py-3 sm:gap-6 sm:px-6">
+    <div className="flex min-w-max items-center gap-6 px-4 py-2 sm:gap-8 sm:px-8">
       {repeatedAnnouncements.map((announcement, index) => (
         <AnnouncementChip
           key={`${announcement._key || announcement.text}-${index}`}
@@ -84,9 +88,7 @@ export function AnnouncementStrip({
   );
 
   return (
-    <div className="relative overflow-hidden border-y-2 border-brutal bg-gradient-to-r from-secondary via-[#22335c] to-primary shadow-brutal-sm">
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-background to-transparent sm:w-16" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-background to-transparent sm:w-16" />
+    <div className="relative overflow-hidden border-y-4 border-black bg-[#ffe800] dark:bg-[#ffe800]">
       <div className="announcement-marquee flex w-max items-center" data-no-swipe="true">
         {track}
         {track}
