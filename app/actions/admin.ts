@@ -23,6 +23,11 @@ export async function getAdminData() {
             },
             "registrations": *[_type == "eventRegistration"] | order(registeredAt desc) {
                 _id, name, cohort, batch, ticketId, registeredAt, clerkId, status, "eventName": event->title, "userEmail": user->email
+            },
+            "events": *[_type == "event"] | order(startTime desc) {
+                _id, title, slug, status, eventType, locationType, location, startTime, endTime, image, registrationLink,
+                "organizer": organizer->{name},
+                "registrationCount": count(*[_type == "eventRegistration" && event._ref == ^._id && status != "rejected"])
             }
           }`;
         const data = await client.withConfig({ useCdn: false }).fetch(query);
@@ -30,6 +35,118 @@ export async function getAdminData() {
     } catch (error) {
         console.error("Failed to fetch admin data:", error);
         return { success: false, error: "Failed to fetch admin data" };
+    }
+}
+
+export async function approveEvent(eventId: string) {
+    try {
+        await client.patch(eventId).set({ status: "approved" }).commit();
+        revalidatePath("/admin");
+        revalidatePath("/events");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to approve event:", error);
+        return { success: false, error: "Failed to approve event" };
+    }
+}
+
+export async function rejectEvent(eventId: string) {
+    try {
+        await client.patch(eventId).set({ status: "rejected" }).commit();
+        revalidatePath("/admin");
+        revalidatePath("/events");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to reject event:", error);
+        return { success: false, error: "Failed to reject event" };
+    }
+}
+
+export async function deleteEvent(eventId: string) {
+    try {
+        await client.delete(eventId);
+        revalidatePath("/admin");
+        revalidatePath("/events");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to delete event:", error);
+        return { success: false, error: "Failed to delete event" };
+    }
+}
+
+export interface EventPayload {
+    id?: string;
+    title: string;
+    description?: string;
+    requirements?: string;
+    eventType: string;
+    locationType: string;
+    location?: string;
+    startTime: string;
+    endTime?: string;
+    registrationLink?: string;
+    status: string;
+    imageBase64?: string;
+    imageFilename?: string;
+    imageContentType?: string;
+}
+
+export async function createOrUpdateEvent(payload: EventPayload) {
+    try {
+        const slug = payload.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 96);
+
+        let imageAsset = undefined;
+        if (payload.imageBase64 && payload.imageFilename && payload.imageContentType) {
+            const buffer = Buffer.from(payload.imageBase64.split(',')[1], 'base64');
+            const asset = await client.assets.upload('image', buffer, {
+                filename: payload.imageFilename,
+                contentType: payload.imageContentType,
+            });
+            imageAsset = { _type: 'image', asset: { _type: 'reference', _ref: asset._id } };
+        }
+
+        if (payload.id) {
+            // Update existing event
+            const patch = client.patch(payload.id).set({
+                title: payload.title,
+                description: payload.description || '',
+                requirements: payload.requirements || '',
+                eventType: payload.eventType,
+                locationType: payload.locationType,
+                location: payload.location || '',
+                startTime: new Date(payload.startTime).toISOString(),
+                endTime: payload.endTime ? new Date(payload.endTime).toISOString() : undefined,
+                registrationLink: payload.registrationLink || undefined,
+                status: payload.status,
+                ...(imageAsset ? { image: imageAsset } : {}),
+            });
+            await patch.commit();
+        } else {
+            // Create new event
+            const doc: any = {
+                _type: 'event',
+                title: payload.title,
+                slug: { _type: 'slug', current: `${slug}-${Date.now()}` },
+                description: payload.description || '',
+                requirements: payload.requirements || '',
+                eventType: payload.eventType,
+                locationType: payload.locationType,
+                location: payload.location || '',
+                startTime: new Date(payload.startTime).toISOString(),
+                endTime: payload.endTime ? new Date(payload.endTime).toISOString() : undefined,
+                registrationLink: payload.registrationLink || undefined,
+                status: payload.status,
+                ...(imageAsset ? { image: imageAsset } : {}),
+            };
+            await client.create(doc);
+        }
+
+        revalidatePath("/admin");
+        revalidatePath("/events");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to save event:", error);
+        return { success: false, error: "Failed to save event" };
     }
 }
 

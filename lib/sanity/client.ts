@@ -223,7 +223,8 @@ export const queries = {
     endTime,
     registrationLink,
     image,
-    "organizer": organizer->{name, avatar}
+    "organizer": organizer->{name, avatar},
+    "registrationCount": count(*[_type == "eventRegistration" && event._ref == ^._id && status != "rejected"])
   }`,
   // Get past events
   getPastEvents: `*[_type == "event" && startTime < now() && status == "approved"] | order(startTime desc) {
@@ -239,6 +240,7 @@ export const queries = {
     endTime,
     registrationLink,
     image,
-    "organizer": organizer->{name, avatar}
+    "organizer": organizer->{name, avatar},
+    "registrationCount": count(*[_type == "eventRegistration" && event._ref == ^._id && status != "rejected"])
   }`,
 };

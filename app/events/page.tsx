@@ -4,10 +4,26 @@ import { EventCard } from "@/components/events/EventCard";
 import { Button } from "@/components/retroui/Button";
 import Link from "next/link";
 import { Calendar, Video, MapPin, Search, Filter } from "lucide-react";
+import { auth } from "@clerk/nextjs/server";
 
 export const revalidate = 60; // Revalidate every minute
 
 export default async function EventsPage() {
+    const { userId } = await auth();
+    let registeredEventIds: string[] = [];
+
+    if (userId) {
+        const userQuery = `*[_type == "user" && clerkId == "${userId}"][0]._id`;
+        const sanityUserId = await client.withConfig({ useCdn: false }).fetch(userQuery);
+        if (sanityUserId) {
+            const registrations = await client.withConfig({ useCdn: false }).fetch(
+                `*[_type == "eventRegistration" && user._ref == $sanityUserId]{ "eventId": event._ref }`,
+                { sanityUserId }
+            );
+            registeredEventIds = registrations.map((r: any) => r.eventId);
+        }
+    }
+
     const [events, pastEvents] = await Promise.all([
         client.withConfig({ useCdn: false }).fetch(queries.getUpcomingEvents),
         client.withConfig({ useCdn: false }).fetch(queries.getPastEvents),
@@ -78,7 +94,7 @@ export default async function EventsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {events.map((event: any) => (
                                 <div key={event._id} className="h-full">
-                                    <EventCard event={event} />
+                                    <EventCard event={event} hasRegistered={registeredEventIds.includes(event._id)} />
                                 </div>
                             ))}
                         </div>
@@ -112,38 +128,14 @@ export default async function EventsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 opacity-80 hover:opacity-100 transition-opacity">
                             {pastEvents.map((event: any) => (
                                 <div key={event._id} className="h-full grayscale hover:grayscale-0 transition-all duration-300">
-                                    <EventCard event={event} />
+                                    <EventCard event={event} hasRegistered={registeredEventIds.includes(event._id)} />
                                 </div>
                             ))}
                         </div>
                     </section>
                 )}
 
-                {/* Newsletter / Notifications */}
-                <section className="container mx-auto px-4 pb-20">
-                    <div className="bg-zinc-900 rounded-3xl p-12 text-white relative overflow-hidden border-2 border-black shadow-brutal">
-                        <div className="relative z-10 text-center max-w-2xl mx-auto">
-                            <h2 className="font-head text-3xl md:text-4xl font-bold mb-4">Never Miss an Update</h2>
-                            <p className="text-zinc-400 mb-8 text-lg">
-                                Get notified about new workshops, hackathons, and guest lectures directly in your inbox.
-                            </p>
-                            <div className="flex gap-2 max-w-md mx-auto">
-                                <input
-                                    type="email"
-                                    placeholder="Enter your email"
-                                    className="flex-1 px-4 py-3 rounded-lg border-2 border-zinc-700 bg-zinc-800 focus:border-white outline-none transition-colors"
-                                />
-                                <Button className="bg-white text-black font-bold px-6 border-2 border-transparent hover:border-black/20 hover:bg-gray-200">
-                                    Subscribe
-                                </Button>
-                            </div>
-                        </div>
 
-                        {/* Abstract shapes */}
-                        <div className="absolute top-0 left-0 w-64 h-64 bg-orange-500/20 blur-3xl rounded-full -translate-x-1/2 -translate-y-1/2"></div>
-                        <div className="absolute bottom-0 right-0 w-64 h-64 bg-blue-500/20 blur-3xl rounded-full translate-x-1/2 translate-y-1/2"></div>
-                    </div>
-                </section>
             </main>
         </>
     );
