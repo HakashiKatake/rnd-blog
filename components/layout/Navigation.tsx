@@ -39,140 +39,162 @@ export function Navigation() {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b-4 border-black bg-background">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link
-            href="/"
-            className="font-head text-2xl font-bold flex items-center gap-1"
-          >
-            SPARK <Zap className="text-primary text-xl fill-primary" />
-          </Link>
+    <>
+      <nav className="sticky top-0 z-50 w-full border-b-4 border-black bg-background/80 backdrop-blur-md">
+        <div className="container mx-auto px-4">
+          <div className="flex h-16 items-center justify-between">
+            {/* Logo */}
+            <Link
+              href="/"
+              className="font-head text-2xl font-bold flex items-center gap-1 group"
+            >
+              <span className="group-hover:text-primary transition-colors">SPARK</span>
+              <Zap className="text-primary text-xl fill-primary transition-transform group-hover:scale-125" />
+            </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`font-body transition-colors flex items-center gap-2 ${isActive(link.href)
-                  ? "text-primary border-b-2 border-primary"
-                  : "text-foreground hover:text-primary"
-                  }`}
-              >
-                {link.icon} {link.label}
-              </Link>
-            ))}
-          </div>
-
-          {/* Right Section */}
-          <div className="flex items-center gap-2 sm:gap-4">
-            <ThemeToggle />
-
-            {/* Desktop Only Buttons */}
-            <div className="hidden sm:flex items-center gap-4">
-              <SignedIn>
-                <Link href="/create">
-                  <Button
-                    size="sm"
-                    className="bg-primary text-primary-foreground border-brutal shadow-brutal hover:shadow-brutal-sm transition-all"
-                  >
-                    Create +
-                  </Button>
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-6 lg:gap-8">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`font-head text-sm uppercase tracking-wider transition-all hover:scale-105 ${isActive(link.href)
+                    ? "text-primary border-b-2 border-primary"
+                    : "text-foreground hover:text-primary"
+                    }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {link.icon}
+                    {link.label}
+                  </div>
                 </Link>
-              </SignedIn>
+              ))}
             </div>
 
-            <SignedIn>
-              <UserButton
-                appearance={neobrutalAuth}
-                afterSignOutUrl="/"
-              >
-                <UserButton.MenuItems>
-                  <UserButton.Action
-                    label="My Spark Profile"
-                    labelIcon={<User className="w-4 h-4" />}
-                    onClick={() => router.push(`/profile/${user?.id}`)}
-                  />
-                </UserButton.MenuItems>
-              </UserButton>
-            </SignedIn>
-
-            <SignedOut>
-              <Link href="/sign-in">
-                <Button
-                  size="sm"
-                  className="bg-primary text-primary-foreground border-brutal shadow-brutal hover:shadow-brutal-sm transition-all text-xs sm:text-sm"
+            {/* Right Section */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              {/* Mobile-only Leaderboard Icon */}
+              <div className="md:hidden">
+                <Link
+                  href="/leaderboard"
+                  className={`p-2 rounded-lg flex items-center justify-center transition-colors ${isActive("/leaderboard") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
                 >
-                  Get Started
-                </Button>
-              </Link>
-            </SignedOut>
+                  <Trophy size={20} className={isActive("/leaderboard") ? "stroke-[2.5px]" : "stroke-[2px]"} />
+                </Link>
+              </div>
 
-            {/* Mobile Menu Toggle */}
-            <button
-              onClick={toggleMenu}
-              className="p-2 md:hidden border-2 border-brutal rounded-lg bg-card shadow-brutal active:shadow-none transition-all"
-            >
-              {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-          </div>
-        </div>
-      </div>
+              <ThemeToggle />
 
-      {/* Mobile Menu Overlay */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={toggleMenu}
-              className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden"
-            />
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-[68px] right-0 bottom-0 w-[280px] bg-background border-l-4 border-brutal z-50 md:hidden p-6 overflow-y-auto"
-            >
-              <div className="flex flex-col gap-6">
-                <SignedIn>
-                  <Link href="/create" onClick={toggleMenu}>
-                    <Button className="w-full bg-primary text-primary-foreground border-brutal shadow-brutal font-bold text-lg mb-4">
-                      Create Post +
+              <SignedIn>
+                <div className="hidden sm:block">
+                  <Link href="/create">
+                    <Button
+                      size="sm"
+                      className="bg-primary text-primary-foreground border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all font-head uppercase tracking-wider px-4"
+                    >
+                      Create +
                     </Button>
                   </Link>
-                </SignedIn>
-
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={toggleMenu}
-                    className={`font-head text-xl font-bold flex items-center gap-3 p-2 rounded-lg transition-all ${isActive(link.href)
-                      ? "bg-primary/10 text-primary border-2 border-primary shadow-brutal-sm"
-                      : "text-foreground hover:bg-muted"
-                      }`}
-                  >
-                    <span className="text-2xl">{link.icon}</span>
-                    {link.label}
-                  </Link>
-                ))}
-
-                <div className="mt-8 pt-8 border-t-2 border-border">
-                  <p className="text-sm text-muted-foreground text-center font-body">
-                    ITM RnD Club • SPARK <Zap className="inline-block w-4 h-4 text-primary fill-primary" />
-                  </p>
                 </div>
+              </SignedIn>
+
+              <SignedIn>
+                <div className="hover:scale-110 transition-transform">
+                  <UserButton
+                    appearance={neobrutalAuth}
+                    afterSignOutUrl="/"
+                  >
+                    <UserButton.MenuItems>
+                      <UserButton.Action
+                        label="My Spark Profile"
+                        labelIcon={<User className="w-4 h-4" />}
+                        onClick={() => router.push(`/profile/${user?.id}`)}
+                      />
+                    </UserButton.MenuItems>
+                  </UserButton>
+                </div>
+              </SignedIn>
+
+              <SignedOut>
+                <Link href="/sign-in">
+                  <Button
+                    size="sm"
+                    className="bg-primary text-primary-foreground border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-xs font-head uppercase tracking-widest"
+                  >
+                    Sign In
+                  </Button>
+                </Link>
+              </SignedOut>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-[100] border-t border-border bg-background md:hidden pb-safe">
+        <div className="flex items-end justify-between px-1 pt-2 pb-2 relative">
+          
+          {/* Left Items */}
+          <div className="flex flex-1 justify-around">
+            {navLinks.filter(l => l.href !== "/leaderboard").slice(0, 2).map((link) => {
+              const active = isActive(link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`flex flex-col items-center justify-center gap-1.5 p-1 transition-colors ${active
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                    }`}
+                >
+                  {React.cloneElement(link.icon as React.ReactElement<any>, {
+                    size: 20,
+                    className: active ? "stroke-[2.5px]" : "stroke-[2px]"
+                  })}
+                  <span className={`text-[9px] font-head uppercase tracking-widest ${active ? "font-black" : "font-bold"}`}>
+                    {link.label}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Center Button */}
+          <div className="flex-shrink-0 px-2 relative -top-3 z-10">
+            <Link href="/create">
+              <div className="bg-[#FF6B35] text-white p-3.5 rounded-2xl shadow-[0_8px_16px_rgba(255,107,53,0.3)] hover:scale-105 active:scale-95 transition-all mx-auto">
+                <Zap size={22} className="fill-current" />
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </nav>
+            </Link>
+          </div>
+
+          {/* Right Items */}
+          <div className="flex flex-1 justify-around">
+            {navLinks.filter(l => l.href !== "/leaderboard").slice(2).map((link) => {
+              const active = isActive(link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`flex flex-col items-center justify-center gap-1.5 p-1 transition-colors ${active
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                    }`}
+                >
+                  {React.cloneElement(link.icon as React.ReactElement<any>, {
+                    size: 20,
+                    className: active ? "stroke-[2.5px]" : "stroke-[2px]"
+                  })}
+                  <span className={`text-[9px] font-head uppercase tracking-widest ${active ? "font-black" : "font-bold"}`}>
+                    {link.label}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+
+        </div>
+      </div>
+    </>
   );
 }

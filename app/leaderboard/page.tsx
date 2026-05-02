@@ -72,14 +72,14 @@ export default async function LeaderboardPage() {
         <section className="container mx-auto px-4 py-12">
           <div className="border-brutal bg-card overflow-hidden">
             {/* Header */}
-            <div className="grid grid-cols-12 gap-4 p-4 bg-primary/10 border-b-2 border-black font-head font-bold">
-              <div className="col-span-1 text-center">Rank</div>
+            <div className="grid grid-cols-12 gap-2 md:gap-4 p-3 md:p-4 bg-primary/10 border-b-2 border-black font-head font-bold text-xs md:text-base">
+              <div className="col-span-2 md:col-span-1 text-center">Rank</div>
               <div className="col-span-5">User</div>
               <div className="col-span-2 text-center">Tier</div>
               <div className="col-span-2 text-center hidden md:block">
                 Posts
               </div>
-              <div className="col-span-2 text-center">Points</div>
+              <div className="col-span-3 md:col-span-2 text-center">Points</div>
             </div>
 
             {/* Users */}
@@ -91,30 +91,30 @@ export default async function LeaderboardPage() {
                 }`}
               >
                 {/* Rank */}
-                <div className="col-span-1 text-center">
-                  <span className="font-head text-2xl font-bold flex justify-center">
-                    {index === 0 && <Medal className="text-yellow-500 w-8 h-8" />}
-                    {index === 1 && <Medal className="text-slate-400 w-8 h-8" />}
-                    {index === 2 && <Medal className="text-orange-600 w-8 h-8" />}
+                <div className="col-span-2 md:col-span-1 text-center flex items-center justify-center">
+                  <span className="font-head text-lg md:text-2xl font-bold flex justify-center">
+                    {index === 0 && <Medal className="text-yellow-500 w-6 h-6 md:w-8 md:h-8" />}
+                    {index === 1 && <Medal className="text-slate-400 w-6 h-6 md:w-8 md:h-8" />}
+                    {index === 2 && <Medal className="text-orange-600 w-6 h-6 md:w-8 md:h-8" />}
                     {index > 2 && `#${index + 1}`}
                   </span>
                 </div>
 
                 {/* User Info */}
-                <div className="col-span-5 flex items-center gap-3">
+                <div className="col-span-5 flex items-center gap-2 md:gap-3">
                   {user.avatar && getImageUrl(user.avatar) && (
                     <Image
                       src={getImageUrl(user.avatar)!}
                       alt={user.name}
                       width={40}
                       height={40}
-                      className="rounded-full border border-black"
+                      className="rounded-full border border-black w-8 h-8 md:w-10 md:h-10 shrink-0"
                     />
                   )}
-                  <div>
-                    <p className="font-semibold">{user.name}</p>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-xs md:text-base truncate">{user.name}</p>
                     {user.university && (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[10px] md:text-xs text-muted-foreground truncate">
                         {user.university}
                       </p>
                     )}
@@ -122,8 +122,8 @@ export default async function LeaderboardPage() {
                 </div>
 
                 {/* Tier */}
-                <div className="col-span-2 flex justify-center">
-                  <Badge className="bg-secondary text-secondary-foreground flex items-center gap-1">
+                <div className="col-span-2 flex justify-center items-center">
+                  <Badge className="bg-secondary text-secondary-foreground flex items-center gap-1 text-[10px] md:text-xs px-1 md:px-2">
                     T{user.tier} {getTierIcon(user.tier)}
                   </Badge>
                 </div>
@@ -134,8 +134,8 @@ export default async function LeaderboardPage() {
                 </div>
 
                 {/* Points */}
-                <div className="col-span-2 text-center">
-                  <p className="font-head text-xl font-bold text-primary">
+                <div className="col-span-3 md:col-span-2 text-center flex items-center justify-center">
+                  <p className="font-head text-sm md:text-xl font-bold text-primary">
                     {user.points}
                   </p>
                 </div>
