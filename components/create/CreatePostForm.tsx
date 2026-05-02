@@ -145,67 +145,10 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
         : [...prev.tags, tag],
     }));
   };
-
+  
   const [aiSuggestions, setAiSuggestions] = useState<string | null>(null);
   const [isImproving, setIsImproving] = useState(false);
   const [isGeneratingGraph, setIsGeneratingGraph] = useState(false);
-  
-  // Peer Review Modal State
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [reviewStepsCompleted, setReviewStepsCompleted] = useState<number>(0);
-  const [reviewRecommendations, setReviewRecommendations] = useState<string | null>(null);
-  const [isReviewing, setIsReviewing] = useState(false);
-
-  const REVIEW_STEPS = [
-    "Scanning Abstract & Keywords...",
-    "Validating IEEE Structures...",
-    "Checking Logic and Rigorous Academic Tone...",
-    "Verifying Component Metrics & Output Flow...",
-    "Synthesizing Peer Review Report..."
-  ];
-
-  const handleReviewPaper = async () => {
-    if (formData.content.length < 500) {
-      toast.error("Please add more content to the paper before submitting for peer review.");
-      return;
-    }
-    setIsReviewModalOpen(true);
-    setIsReviewing(true);
-    setReviewStepsCompleted(0);
-    setReviewRecommendations(null);
-
-    // Simulate ticking animation (fires every ~800ms)
-    let currentStep = 0;
-    const interval = setInterval(() => {
-      currentStep++;
-      if (currentStep <= 5) {
-        setReviewStepsCompleted(currentStep);
-      }
-    }, 800);
-
-    try {
-      const res = await fetch("/api/ai/review-paper", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: formData.title, content: formData.content }),
-      });
-
-      if (!res.ok) throw new Error("Peer Review Engine failed to respond.");
-      const data = await res.json();
-      
-      clearInterval(interval);
-      setReviewStepsCompleted(5); // Ensure fully checked visually
-      setReviewRecommendations(data.recommendations);
-      toast.success("Peer Review finalized!");
-    } catch (e: any) {
-      clearInterval(interval);
-      toast.error(e.message);
-      setIsReviewModalOpen(false);
-    } finally {
-      setIsReviewing(false);
-    }
-  };
-
   
   // Graph GUI State
   const [isGraphModalOpen, setIsGraphModalOpen] = useState(false);
@@ -344,7 +287,7 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
      setGeneratedFlowSvg(svg);
   }, [flowSteps, flowDirection, isFlowModalOpen]);
 
-  const [isWritingPaper, setIsWritingPaper] = useState(false);
+
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isConvertingPdf, setIsConvertingPdf] = useState(false);
@@ -761,61 +704,6 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
                   <h3 className="font-head text-xl font-bold">
                     Research Details
                   </h3>
-                  <div className="flex flex-wrap gap-2">
-                     <Button 
-                       type="button" 
-                       onClick={async () => {
-                          if (!formData.title) {
-                              toast.error("Please enter a paper title first to guide the AI.");
-                              return;
-                          }
-                          setIsWritingPaper(true);
-                          const toastId = toast.loading("AI is researching and writing the paper...");
-                          try {
-                            const res = await fetch("/api/ai/write-paper", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ topic: formData.title, existingContent: sections.introduction }),
-                            });
-                            if (!res.ok) {
-                               const errorData = await res.json().catch(() => ({}));
-                               throw new Error(errorData.error || "Paper writing failed");
-                            }
-                            const data = await res.json();
-                            handleChange("excerpt", data.abstract || "");
-                            if (data.keywords && typeof data.keywords === 'string') {
-                               const kw = data.keywords.split(",").map((k: string) => k.trim());
-                               setFormData(prev => ({ ...prev, tags: kw }));
-                            }
-                            setSections({
-                               introduction: data.introduction || "",
-                               methods: data.methods || "",
-                               results: data.results || "",
-                               conclusion: data.conclusion || ""
-                            });
-                            toast.success("Paper auto-written successfully!", { id: toastId });
-                          } catch (error: any) {
-                            toast.error(error.message, { id: toastId });
-                          } finally {
-                            setIsWritingPaper(false);
-                          }
-                       }}
-                       disabled={isWritingPaper}
-                       className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-brutal-sm flex items-center gap-2 text-xs"
-                     >
-                       {isWritingPaper ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
-                       Auto-Generate Paper
-                     </Button>
-                     <Button 
-                        type="button" 
-                        variant="outline"
-                        onClick={handleReviewPaper}
-                        className="border-brutal flex items-center gap-2 text-xs bg-card hover:bg-muted border-foreground text-foreground shadow-brutal-sm"
-                     >
-                       <ClipboardCheck className="w-4 h-4 text-primary" />
-                       Review
-                     </Button>
-                  </div>
                 </div>
                 
                 <div className="flex items-center gap-3 p-2 bg-muted/30 rounded-md border border-dashed border-border/50">
@@ -1781,95 +1669,7 @@ export function PostForm({ userId, initialData, postId }: PostFormProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* Review Modal */}
-      <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen}>
-        <DialogContent className="max-w-2xl bg-card border-2 border-brutal shadow-brutal font-serif p-0 overflow-hidden">
-          <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-6 flex flex-col items-center justify-center text-white border-b-2 border-black">
-            <ClipboardCheck className="w-12 h-12 mb-2 opacity-90" />
-            <DialogTitle className="font-head text-2xl font-bold uppercase tracking-wider text-center m-0">
-              Review
-            </DialogTitle>
-            <p className="text-sm font-sans font-medium text-white/80 max-w-sm text-center">
-              Our automated reviewer is actively verifying your manuscript format, constraints, and academic rigorousness against standards.
-            </p>
-          </div>
 
-          <div className="p-8 max-h-[60vh] overflow-y-auto overflow-x-hidden border-b-2 border-black">
-            <div className="space-y-4 mb-8">
-               {REVIEW_STEPS.map((step, index) => {
-                 const isCompleted = reviewStepsCompleted > index;
-                 const isCurrent = reviewStepsCompleted === index && isReviewing;
-                 return (
-                   <div key={index} className={cn("flex items-center gap-3 transition-opacity duration-500", !isCompleted && !isCurrent ? "opacity-30" : "opacity-100")}>
-                     {isCompleted ? (
-                       <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
-                     ) : isCurrent ? (
-                       <Loader2 className="w-5 h-5 text-orange-500 animate-spin shrink-0" />
-                     ) : (
-                       <div className="w-5 h-5 border-2 border-gray-300 rounded-full shrink-0" />
-                     )}
-                     <span className={cn(
-                       "font-sans font-medium",
-                       isCompleted ? "text-green-800" : isCurrent ? "text-orange-800" : "text-gray-500"
-                     )}>
-                       {step}
-                     </span>
-                   </div>
-                 );
-               })}
-            </div>
-
-            {reviewRecommendations && reviewRecommendations.trim().toUpperCase() === "VIOLATION" ? (
-               <div className="border-t-4 border-red-600 pt-8 animate-in slide-in-from-bottom-4 duration-700 fade-in mt-4">
-                  <h3 className="font-head text-2xl font-black uppercase flex items-center gap-3 mb-6 tracking-wide text-red-600">
-                     <XCircle className="w-8 h-8" /> Policy Violation Detected
-                  </h3>
-                  <div className="bg-[#fef2f2] text-red-900 p-8 border-4 border-red-700 shadow-[8px_8px_0_0_#b91c1c] rounded-none">
-                     <p className="font-sans font-bold text-lg leading-relaxed">
-                        ⚠️ The AI Peer Reviewer detected vulgarity, trolling, or targeted harassment directed at specific individuals or organizations within your paper. Our community strictly prohibits this. Please revise your content immediately.
-                     </p>
-                  </div>
-               </div>
-            ) : reviewRecommendations && reviewRecommendations.trim().toUpperCase() === "PERFECT" ? (
-               <div className="border-t-4 border-green-600 pt-8 animate-in slide-in-from-bottom-4 duration-700 fade-in mt-4">
-                  <h3 className="font-head text-2xl font-black uppercase flex items-center gap-3 mb-6 tracking-wide text-green-600">
-                     <Sparkles className="w-8 h-8" /> Flawless Manuscript
-                  </h3>
-                  <div className="bg-[#f0fdf4] text-green-900 p-8 border-4 border-green-700 shadow-[8px_8px_0_0_#15803d] rounded-none">
-                     <p className="font-sans font-bold text-lg leading-relaxed">
-                        Outstanding work! 🏆 The AI Peer Reviewer found your research paper to be exceptionally rigorous, logically sound, and perfectly formatted to IEEE standards. No structural or academic modifications are recommended.
-                     </p>
-                  </div>
-               </div>
-            ) : reviewRecommendations && (
-               <div className="border-t-4 border-black pt-8 animate-in slide-in-from-bottom-4 duration-700 fade-in mt-4">
-                  <h3 className="font-head text-2xl font-black uppercase flex items-center gap-3 mb-6 tracking-wide text-[#ff6b35]">
-                     <FileCheck2 className="w-8 h-8" /> Actionable Feedback
-                  </h3>
-                  
-                  {/* High Contrast NeoBrutalist Output Block */}
-                  <div className="bg-[#fff8f3] text-black p-8 border-4 border-black shadow-[8px_8px_0_0_#000000] rounded-none">
-                    <div className="prose prose-sm max-w-none font-sans font-medium leading-relaxed [&_h1]:text-black [&_h2]:text-black [&_h3]:text-black [&_strong]:text-black [&_strong]:font-black [&_li]:text-black [&_p]:text-black [&_ul]:my-4 [&_ul]:space-y-3 [&_ul]:pl-6 [&_li::marker]:text-[#ff6b35] [&_code]:text-red-600 [&_code]:bg-red-50 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:border [&_code]:border-black">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {reviewRecommendations}
-                      </ReactMarkdown>
-                    </div>
-                  </div>
-               </div>
-            )}
-          </div>
-
-          <DialogFooter className="bg-muted p-4 border-t-2 border-black/10">
-            <Button
-              type="button"
-              onClick={() => setIsReviewModalOpen(false)}
-              className="bg-black text-white px-8 uppercase font-bold tracking-widest shadow-brutal hover:shadow-brutal-sm border border-transparent hover:translate-y-[2px] transition-all"
-            >
-              {isReviewing ? "Cancel Review" : "Close Review"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

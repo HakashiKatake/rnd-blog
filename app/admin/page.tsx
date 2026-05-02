@@ -20,7 +20,7 @@ import { Button } from "@/components/retroui/Button";
 import { toast } from "sonner";
 import Link from "next/link";
 import { getImageUrl } from "@/lib/sanity/client";
-import { FaCheck, FaXmark, FaEye, FaScroll, FaHandshake, FaNewspaper, FaTicket, FaPaperclip, FaTrash, FaCalendar, FaPen, FaPlus } from "react-icons/fa6";
+import { FaCheck, FaXmark, FaEye, FaScroll, FaHandshake, FaNewspaper, FaTicket, FaPaperclip, FaTrash, FaCalendar, FaPen, FaPlus, FaFileCsv, FaPrint } from "react-icons/fa6";
 import * as Tabs from "@radix-ui/react-tabs";
 import * as Dialog from "@radix-ui/react-dialog";
 
@@ -178,6 +178,108 @@ export default function AdminPage() {
         setIsSavingEvent(false);
         if (result.success) { toast.success(editingEvent ? "Event updated!" : "Event created!"); fetchAllData(); setEventModalOpen(false); }
         else toast.error(result.error || "Failed to save event");
+    };
+
+    const exportEventCSV = (event: any) => {
+        const attendees = registrations.filter((r: any) => r.eventName === event.title && r.status === 'approved');
+        if (attendees.length === 0) {
+            toast.error("No approved attendees to export.");
+            return;
+        }
+
+        const headers = ["Name", "Email", "Cohort", "Batch", "Ticket ID", "Registered At"];
+        const rows = attendees.map((a: any) => [
+            `"${a.name}"`, 
+            `"${a.userEmail || ''}"`, 
+            `"${a.cohort}"`, 
+            `"${a.batch}"`, 
+            `"${a.ticketId}"`, 
+            `"${new Date(a.registeredAt).toLocaleString()}"`
+        ]);
+
+        const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((e: any) => e.join(","))].join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `${event.title.replace(/[^a-zA-Z0-9]/g, '_')}_Attendees.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const printAttendanceSheet = (event: any) => {
+        const attendees = registrations.filter((r: any) => r.eventName === event.title && r.status === 'approved');
+        if (attendees.length === 0) {
+            toast.error("No approved attendees to print.");
+            return;
+        }
+
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            toast.error("Please allow popups to print attendance sheet.");
+            return;
+        }
+
+        const chunks = [];
+        for (let i = 0; i < attendees.length; i += 12) {
+            chunks.push(attendees.slice(i, i + 12));
+        }
+
+        const html = `
+            <html>
+            <head>
+                <title>${event.title} - Attendance Sheet</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    h1 { text-align: center; margin-bottom: 20px; font-size: 24px; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                    th, td { border: 1px solid #000; padding: 14px 10px; text-align: left; font-size: 14px; }
+                    th { background-color: #f0f0f0; }
+                    .page-break { page-break-before: always; }
+                    @media print {
+                        tr { page-break-inside: avoid; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${chunks.map((chunk, chunkIndex) => `
+                    ${chunkIndex > 0 ? '<div class="page-break"></div>' : ''}
+                    ${chunkIndex === 0 ? `<h1>Attendance Sheet: ${event.title}</h1>` : ''}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">S.No</th>
+                                <th style="width: 25%;">Name</th>
+                                <th style="width: 35%;">Email</th>
+                                <th style="width: 15%;">Cohort</th>
+                                <th>Signature</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${chunk.map((a: any, indexWithinChunk: number) => {
+                                const globalIndex = (chunkIndex * 12) + indexWithinChunk;
+                                return `
+                                <tr>
+                                    <td>${globalIndex + 1}</td>
+                                    <td>${a.name}</td>
+                                    <td>${a.userEmail || '-'}</td>
+                                    <td>${a.cohort}</td>
+                                    <td></td>
+                                </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                `).join('')}
+                <script>
+                    window.onload = () => { window.print(); }
+                </script>
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(html);
+        printWindow.document.close();
     };
 
     const handleCollabAction = async (id: string, action: "approve" | "reject") => {
@@ -406,11 +508,13 @@ export default function AdminPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex gap-2 flex-shrink-0">
+                                        <div className="flex gap-2 flex-shrink-0 flex-wrap justify-end">
+                                            <Button size="sm" variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => exportEventCSV(ev)} title="Export CSV"><FaFileCsv /> Export</Button>
+                                            <Button size="sm" variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20" onClick={() => printAttendanceSheet(ev)} title="Print Attendance"><FaPrint /> Print</Button>
                                             <Button size="sm" variant="outline" onClick={() => openEventModal(ev)} title="Edit"><FaPen /></Button>
-                                            {ev.status !== 'approved' && <Button size="sm" className="bg-green-500 text-white border-green-700" onClick={() => handleEventAction(ev._id, 'approve')}><FaCheck /> Approve</Button>}
-                                            {ev.status !== 'rejected' && <Button size="sm" className="bg-red-500 text-white border-red-700" onClick={() => handleEventAction(ev._id, 'reject')}><FaXmark /> Reject</Button>}
-                                            <Button size="sm" className="bg-zinc-800 text-white border-zinc-900" onClick={() => handleEventAction(ev._id, 'delete')} title="Delete"><FaTrash /></Button>
+                                            {ev.status !== 'approved' && <Button size="sm" className="bg-green-500 text-white border-green-700 hover:bg-green-600" onClick={() => handleEventAction(ev._id, 'approve')}><FaCheck /> Approve</Button>}
+                                            {ev.status !== 'rejected' && <Button size="sm" className="bg-red-500 text-white border-red-700 hover:bg-red-600" onClick={() => handleEventAction(ev._id, 'reject')}><FaXmark /> Reject</Button>}
+                                            <Button size="sm" className="bg-zinc-800 text-white border-zinc-900 hover:bg-zinc-900" onClick={() => handleEventAction(ev._id, 'delete')} title="Delete"><FaTrash /></Button>
                                         </div>
                                     </div>
                                 ))}
