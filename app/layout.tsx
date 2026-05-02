@@ -4,6 +4,7 @@ import { Poppins, Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from 'sonner';
 import { ThemeProvider } from "@/components/theme-provider"
 import { IntroAnimation } from "@/components/layout/IntroAnimation"
+import { SwipeNavigator } from "@/components/layout/SwipeNavigator"
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 import "./globals.css";
 
@@ -53,6 +54,7 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
+              <SwipeNavigator />
               <IntroAnimation>
                 {children}
               </IntroAnimation>
