@@ -40,7 +40,7 @@ export function Navigation() {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b-4 border-black bg-background">
+    <nav className="sticky top-0 z-[120] isolate w-full border-b-4 border-black bg-background pointer-events-auto">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -52,12 +52,12 @@ export function Navigation() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-6 pointer-events-auto">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`font-body transition-colors flex items-center gap-2 ${isActive(link.href)
+                className={`relative z-[121] font-body transition-colors flex items-center gap-2 ${isActive(link.href)
                   ? "text-primary border-b-2 border-primary"
                   : "text-foreground hover:text-primary"
                   }`}

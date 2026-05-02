@@ -11,6 +11,8 @@ export async function getOrCreateUser() {
         return null
     }
 
+    const primaryEmail = clerkUser.emailAddresses[0]?.emailAddress
+
     // Check if user exists in Sanity
     const existingUser = await client.fetch(
         `*[_type == "user" && clerkId == $clerkId][0]`,
@@ -21,12 +23,38 @@ export async function getOrCreateUser() {
         return existingUser
     }
 
+    // If Clerk was reconfigured, preserve the existing Sanity user by matching email
+    // and relinking it to the new Clerk identity instead of creating a duplicate user.
+    if (primaryEmail) {
+        const existingUserByEmail = await client.fetch(
+            `*[_type == "user" && email == $email][0]`,
+            { email: primaryEmail }
+        )
+
+        if (existingUserByEmail?._id) {
+            await client.patch(existingUserByEmail._id).set({
+                clerkId: clerkUser.id,
+                email: primaryEmail,
+                name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || existingUserByEmail.name || 'Anonymous',
+                avatar: clerkUser.imageUrl || existingUserByEmail.avatar,
+            }).commit()
+
+            return {
+                ...existingUserByEmail,
+                clerkId: clerkUser.id,
+                email: primaryEmail,
+                name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || existingUserByEmail.name || 'Anonymous',
+                avatar: clerkUser.imageUrl || existingUserByEmail.avatar,
+            }
+        }
+    }
+
     // Create new user in Sanity
     const newUser = await client.create({
         _type: 'user',
         clerkId: clerkUser.id,
         name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'Anonymous',
-        email: clerkUser.emailAddresses[0]?.emailAddress || '',
+        email: primaryEmail || '',
         avatar: clerkUser.imageUrl,
         tier: 1, // Spark Initiate
         points: 0,

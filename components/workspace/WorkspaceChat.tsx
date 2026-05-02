@@ -1,42 +1,60 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useMutation, usePaginatedQuery, useQuery } from "convex/react";
 import { useUser } from "@clerk/nextjs";
-import { Button } from "@/components/retroui/Button";
-import {
-  FaPaperPlane,
-  FaExpand,
-  FaCompress,
-  FaEllipsisVertical,
-  FaComments,
-} from "react-icons/fa6";
-import { client } from "@/lib/sanity/client";
+import { api } from "@/convex/_generated/api";
 import { format, isToday, isYesterday } from "date-fns";
 import { toast } from "sonner";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  FaComments,
+  FaHashtag,
+  FaLock,
+  FaPaperPlane,
+  FaTriangleExclamation,
+} from "react-icons/fa6";
 
 interface WorkspaceChatProps {
-  collaborationId: string;
-  initialMessages: any[];
-  isExpanded: boolean;
-  onToggleExpand: () => void;
+  workspaceId: string;
+  channelSlug: "announcements" | "team-chat" | "updates";
+  title: string;
+  description: string;
+  convexConfigured: boolean;
+  chatReady: boolean;
+  chatPreparing?: boolean;
+  chatUnavailableReason?: string;
+  currentUserRole: "host" | "member";
+  memberName: string;
+  memberAvatarUrl?: string;
+  canPost?: boolean;
+  pinnedContent?: React.ReactNode;
 }
 
-function formatMessageTime(timestamp: string) {
+interface ChatMessage {
+  _id: string;
+  body: string;
+  authorName: string;
+  authorAvatarUrl?: string;
+  authorClerkId: string;
+  createdAt: number;
+}
+
+interface ChannelUnreadState {
+  channelSlug: string;
+  lastReadAt: number;
+  latestMessageAt?: number;
+  unreadCount: number;
+}
+
+function formatMessageTime(timestamp: number) {
   try {
-    const date = new Date(timestamp);
-    return format(date, "HH:mm");
+    return format(new Date(timestamp), "HH:mm");
   } catch {
     return "";
   }
 }
 
-function formatDateSeparator(timestamp: string) {
+function formatDateSeparator(timestamp: number) {
   try {
     const date = new Date(timestamp);
     if (isToday(date)) return "Today";
@@ -51,396 +69,362 @@ function getInitials(name: string) {
   if (!name) return "?";
   return name
     .split(" ")
-    .map((w) => w[0])
+    .map((word) => word[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
 }
 
-export function WorkspaceChat({
-  collaborationId,
-  initialMessages,
-  isExpanded,
-  onToggleExpand,
-}: WorkspaceChatProps) {
+function SetupNotice({ reason }: { reason?: string }) {
+  return (
+    <div className="flex h-full flex-col overflow-hidden bg-white">
+      <div className="border-b border-[#E5E0D8] bg-white px-5 py-4">
+        <div className="flex items-center gap-2 text-sm font-semibold text-[#111111]">
+          <FaTriangleExclamation className="text-[#FF5C00]" />
+          Chat setup required
+        </div>
+      </div>
+      <div className="flex flex-1 items-center justify-center bg-[#FCFBF8] px-6 text-center">
+        <div className="max-w-md rounded-2xl border border-[#E5E0D8] bg-white p-6">
+          <p className="text-sm font-semibold text-[#181512]">
+            Realtime workspace chat is unavailable right now.
+          </p>
+          <p className="mt-2 text-sm leading-6 text-[#7A7267]">
+            {reason ||
+              "Add `NEXT_PUBLIC_CONVEX_URL`, configure the Clerk Convex JWT issuer, and run `npx convex dev` to enable realtime workspace chat."}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SyncedRealtimeWorkspaceChat({
+  workspaceId,
+  channelSlug,
+  title,
+  description,
+  canPost = true,
+  pinnedContent,
+}: Pick<
+  WorkspaceChatProps,
+  "workspaceId" | "channelSlug" | "title" | "description" | "canPost" | "pinnedContent"
+>) {
   const { user } = useUser();
-  const [messages, setMessages] = useState(initialMessages || []);
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const lastChannelRef = useRef(channelSlug);
 
-  // Edit state
-  const [editingMessageKey, setEditingMessageKey] = useState<string | null>(
-    null,
+  const sendMessage = useMutation(api.messages.send);
+  const markRead = useMutation(api.messages.markRead);
+  const unreadSummary = useQuery(api.messages.unreadSummary, {
+    workspaceId,
+  }) as ChannelUnreadState[] | undefined;
+  const { results, status, loadMore } = usePaginatedQuery(
+    api.messages.list,
+    {
+      workspaceId,
+      channelSlug,
+    },
+    { initialNumItems: 30 },
   );
-  const [editText, setEditText] = useState("");
+
+  const messages = useMemo(() => {
+    return [...(results || [])].reverse() as ChatMessage[];
+  }, [results]);
+  const channelUnreadState = unreadSummary?.find(
+    (entry) => entry.channelSlug === channelSlug,
+  );
+
+  const latestMessageId = messages[messages.length - 1]?._id;
+  const latestMessageAt = messages[messages.length - 1]?.createdAt;
+  const lastMarkedReadRef = useRef(0);
 
   useEffect(() => {
-    if (scrollRef.current) {
+    if (!scrollRef.current) return;
+
+    const channelChanged = lastChannelRef.current !== channelSlug;
+    if (channelChanged) {
+      lastChannelRef.current = channelSlug;
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      return;
+    }
+
+    if (latestMessageId) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [channelSlug, latestMessageId]);
 
-  const fetchMessages = async () => {
-    try {
-      const updateddata = await client.withConfig({ useCdn: false }).fetch(
-        `*[_type == "collaboration" && _id == $id][0].messages[] {
-                _key,
-                text,
-                timestamp,
-                "user": user->{name, avatar, clerkId}
-            }`,
-        { id: collaborationId },
-      );
-
-      if (updateddata) {
-        setMessages((prev) => {
-          const serverMessages = updateddata || [];
-          const lastServerTime =
-            serverMessages.length > 0
-              ? new Date(
-                serverMessages[serverMessages.length - 1].timestamp,
-              ).getTime()
-              : 0;
-
-          const pendingMessages = prev.filter((m) => {
-            // Only keep optimistic messages that are NOT in the server list yet
-            return m._localOptimistic && !serverMessages.find((sm: any) => sm._key === m._key);
-          });
-
-          return [...serverMessages, ...pendingMessages];
-        });
-      }
-    } catch (e) {
-      // Silently fail on polling errors
-    }
-  };
-
-  // Poll for new messages
   useEffect(() => {
-    const interval = setInterval(fetchMessages, 3000);
-    return () => clearInterval(interval);
-  }, [collaborationId]);
+    if (!latestMessageAt || !channelUnreadState) return;
+
+    const readAt = Math.max(channelUnreadState.lastReadAt, latestMessageAt);
+    if (readAt <= lastMarkedReadRef.current) return;
+
+    lastMarkedReadRef.current = readAt;
+
+    void markRead({
+      workspaceId,
+      channelSlug,
+      readAt,
+    }).catch((error) => {
+      console.error(error);
+      lastMarkedReadRef.current = Math.min(lastMarkedReadRef.current, 0);
+    });
+  }, [
+    channelSlug,
+    channelUnreadState,
+    latestMessageAt,
+    markRead,
+    workspaceId,
+  ]);
 
   const handleSend = async () => {
-    if (!newMessage.trim() || !user) return;
+    const trimmed = newMessage.trim();
+    if (!trimmed || !canPost || !user) return;
 
     setIsSending(true);
-    const tempMsg = {
-      _localOptimistic: true,
-      text: newMessage,
-      timestamp: new Date().toISOString(),
-      _key: crypto.randomUUID().replace(/-/g, "").slice(0, 12),
-      user: {
-        name: user.fullName,
-        avatar: user.imageUrl,
-        clerkId: user.id,
-      },
-    };
-
-    setMessages((prev) => [...prev, tempMsg]);
-    setNewMessage("");
-    inputRef.current?.focus();
 
     try {
-      const res = await fetch("/api/collaborate/message", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          collaborationId,
-          text: tempMsg.text,
-          messageKey: tempMsg._key
-        }),
+      await sendMessage({
+        workspaceId,
+        channelSlug,
+        body: trimmed,
+        clientMessageId: crypto.randomUUID(),
       });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Failed to send");
-      }
-
-      await fetchMessages();
-    } catch (e: any) {
-      console.error(e);
-      toast.error(`Failed: ${e.message}`);
-      setMessages((prev) => prev.filter((m) => m !== tempMsg));
+      setNewMessage("");
+      inputRef.current?.focus();
+    } catch (error) {
+      console.error(error);
+      const message =
+        error instanceof Error ? error.message : "Failed to send message";
+      toast.error(message);
     } finally {
       setIsSending(false);
     }
   };
 
-  const handleDelete = async (messageKey: string) => {
-    if (!confirm("Delete this message?")) return;
-    setMessages((prev) => prev.filter((m) => m._key !== messageKey));
-    try {
-      await fetch("/api/collaborate/message/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ collaborationId, messageKey }),
-      });
-      toast.success("Message deleted");
-      fetchMessages();
-    } catch (e) {
-      toast.error("Failed to delete");
-      fetchMessages();
-    }
-  };
-
-  const handleEdit = async () => {
-    if (!editingMessageKey) return;
-    const originalText = messages.find(
-      (m) => m._key === editingMessageKey,
-    )?.text;
-
-    setMessages((prev) =>
-      prev.map((m) =>
-        m._key === editingMessageKey ? { ...m, text: editText } : m,
-      ),
-    );
-    setEditingMessageKey(null);
-
-    try {
-      await fetch("/api/collaborate/message/edit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          collaborationId,
-          messageKey: editingMessageKey,
-          newText: editText,
-        }),
-      });
-      toast.success("Message edited");
-      fetchMessages();
-    } catch (e) {
-      toast.error("Failed to edit");
-      if (originalText) {
-        setMessages((prev) =>
-          prev.map((m) =>
-            m._key === editingMessageKey ? { ...m, text: originalText } : m,
-          ),
-        );
-      }
-    }
-  };
-
-  const startEditing = (msg: any) => {
-    if (!msg._key) return;
-    setEditingMessageKey(msg._key);
-    setEditText(msg.text);
-  };
-
-  // Group messages by date for separators
   let lastDate = "";
+  let unreadSeparatorShown = false;
 
   return (
-    <div className="h-full flex flex-col border-2 border-border rounded-lg bg-card shadow-brutal overflow-hidden">
-      {/* Chat header */}
-      <div className="px-4 py-3 border-b-2 border-border bg-muted/20 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-[#FF6B35] border-2 border-border flex items-center justify-center">
-            <FaComments className="text-white text-xs" />
+    <div className="flex h-full flex-col overflow-hidden bg-white">
+      <div className="flex flex-shrink-0 items-center justify-between border-b border-[#E5E0D8] bg-white px-5 py-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FF5C00] text-white">
+              <FaHashtag className="text-xs" />
+            </div>
+            <h3 className="text-sm font-semibold text-[#111111]">{title}</h3>
           </div>
-          <h3 className="font-head font-black text-sm">Team Chat</h3>
-          <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full border border-border">
-            {messages?.length || 0} msgs
-          </span>
+          <p className="mt-1 text-xs text-[#7A7267]">{description}</p>
         </div>
-        <button
-          onClick={onToggleExpand}
-          className="p-1.5 hover:bg-muted rounded-md transition-colors border border-transparent hover:border-border"
-          title={isExpanded ? "Collapse chat" : "Expand chat"}
-        >
-          {isExpanded ? (
-            <FaCompress className="text-xs" />
-          ) : (
-            <FaExpand className="text-xs" />
-          )}
-        </button>
+        <span className="rounded-full bg-[#F3EFE7] px-2 py-0.5 font-mono text-[10px] text-[#7A7267]">
+          {messages.length} msgs
+        </span>
       </div>
 
-      {/* Messages area */}
-      <div
-        className="flex-1 overflow-y-auto px-3 py-3 space-y-1"
-        ref={scrollRef}
-      >
-        {messages && messages.length > 0 ? (
-          messages.map((msg: any, idx: number) => {
-            const isMe = Boolean(user?.id && msg.user?.clerkId === user.id);
-            const isEditing = Boolean(
-              msg._key && editingMessageKey === msg._key,
-            );
-            const isOptimistic = !!msg._localOptimistic;
+      <div className="flex-1 overflow-y-auto bg-[#FCFBF8] px-5 py-4" ref={scrollRef}>
+        {status === "CanLoadMore" || status === "LoadingMore" ? (
+          <div className="mb-4 flex justify-center">
+            <button
+              onClick={() => loadMore(20)}
+              disabled={status === "LoadingMore"}
+              className="rounded-full border border-[#E5E0D8] bg-white px-3 py-1 text-xs font-medium text-[#5E564B] transition hover:border-[#FF5C00] hover:text-[#FF5C00] disabled:opacity-60"
+            >
+              {status === "LoadingMore" ? "Loading history..." : "Load older messages"}
+            </button>
+          </div>
+        ) : null}
 
-            // Date separator
-            const msgDate = msg.timestamp
-              ? formatDateSeparator(msg.timestamp)
-              : "";
-            let showDateSep = false;
-            if (msgDate && msgDate !== lastDate) {
-              lastDate = msgDate;
-              showDateSep = true;
-            }
+        {pinnedContent ? <div className="mb-4">{pinnedContent}</div> : null}
 
-            // Check if same sender as previous message (for grouping)
-            const prevMsg = idx > 0 ? messages[idx - 1] : null;
-            const sameSender =
-              prevMsg && prevMsg.user?.clerkId === msg.user?.clerkId;
-            const showAvatar = !sameSender || showDateSep;
+        {messages.length > 0 ? (
+          <div className="space-y-1">
+            {messages.map((message) => {
+              const isMe = Boolean(user?.id && message.authorClerkId === user.id);
+              const separator = formatDateSeparator(message.createdAt);
+              const shouldShowSeparator = separator && separator !== lastDate;
+              const shouldShowUnreadSeparator = Boolean(
+                !unreadSeparatorShown &&
+                  channelUnreadState?.lastReadAt &&
+                  message.createdAt > channelUnreadState.lastReadAt &&
+                  !isMe,
+              );
+              if (shouldShowSeparator) {
+                lastDate = separator;
+              }
+              if (shouldShowUnreadSeparator) {
+                unreadSeparatorShown = true;
+              }
 
-            return (
-              <React.Fragment key={msg._key || `opt-${idx}`}>
-                {showDateSep && (
-                  <div className="flex items-center gap-3 my-3">
-                    <div className="flex-1 h-px bg-gray-200" />
-                    <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider px-2 py-0.5 bg-gray-50 rounded-full border">
-                      {msgDate}
-                    </span>
-                    <div className="flex-1 h-px bg-gray-200" />
-                  </div>
-                )}
-
-                <div
-                  className={`flex ${isMe ? "justify-end" : "justify-start"} group ${showAvatar ? "mt-3" : "mt-0.5"}`}
-                >
-                  {/* Avatar for other users */}
-                  {!isMe && showAvatar && (
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#1A2947] to-[#2d4570] flex items-center justify-center text-white text-[10px] font-bold mr-2 flex-shrink-0 mt-1 border border-border">
-                      {getInitials(msg.user?.name || "")}
+              return (
+                <React.Fragment key={message._id}>
+                  {shouldShowSeparator ? (
+                    <div className="my-3 flex items-center gap-3">
+                      <div className="h-px flex-1 bg-[#E7E0D6]" />
+                      <span className="rounded-full border border-[#E7E0D6] bg-white px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-[#8A8174]">
+                        {separator}
+                      </span>
+                      <div className="h-px flex-1 bg-[#E7E0D6]" />
                     </div>
-                  )}
-                  {!isMe && !showAvatar && (
-                    <div className="w-7 mr-2 flex-shrink-0" />
-                  )}
+                  ) : null}
 
-                  <div
-                    className={`max-w-[78%] relative ${isMe ? "ml-auto" : ""}`}
-                  >
-                    {/* Sender name */}
-                    {!isMe && showAvatar && (
-                      <div className="text-[11px] font-bold text-foreground mb-0.5 ml-1">
-                        {msg.user?.name || "Unknown"}
+                  {shouldShowUnreadSeparator ? (
+                    <div className="my-3 flex items-center gap-3">
+                      <div className="h-px flex-1 bg-[#FFD7C2]" />
+                      <span className="rounded-full border border-[#FFD7C2] bg-[#FFF4EE] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-[#D94E00]">
+                        New
+                      </span>
+                      <div className="h-px flex-1 bg-[#FFD7C2]" />
+                    </div>
+                  ) : null}
+
+                  <div className={`group mt-2 flex ${isMe ? "justify-end" : "justify-start"}`}>
+                    {!isMe ? (
+                      <div className="mr-2 mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#1A2947] to-[#2D4570] text-[10px] font-bold text-white">
+                        {getInitials(message.authorName)}
                       </div>
-                    )}
+                    ) : null}
 
-                    {/* Message bubble */}
-                    <div
-                      className={`rounded-xl px-3 py-2 relative min-w-[80px] ${isMe
-                        ? "bg-[#FF6B35] text-white rounded-br-sm"
-                        : "bg-muted text-foreground border border-border rounded-bl-sm"
-                        } ${isOptimistic ? "opacity-70" : ""}`}
-                    >
-                      {isEditing ? (
-                        <div className="flex flex-col gap-2 min-w-[200px]">
-                          <input
-                            value={editText}
-                            onChange={(e) => setEditText(e.target.value)}
-                            className="bg-card text-foreground border-2 border-border outline-none w-full p-2 rounded text-sm"
-                            autoFocus
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") handleEdit();
-                              if (e.key === "Escape")
-                                setEditingMessageKey(null);
-                            }}
-                          />
-                          <div className="flex justify-end gap-2">
-                            <button
-                              onClick={() => setEditingMessageKey(null)}
-                              className="text-xs font-medium text-white/80 hover:text-white px-2 py-1"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              onClick={handleEdit}
-                              className="text-xs font-bold bg-card text-foreground px-3 py-1 rounded-md shadow hover:bg-muted transition-colors"
-                            >
-                              Save
-                            </button>
-                          </div>
+                    <div className={`max-w-[78%] ${isMe ? "ml-auto" : ""}`}>
+                      {!isMe ? (
+                        <div className="mb-0.5 ml-1 text-[11px] font-semibold text-[#28231C]">
+                          {message.authorName}
                         </div>
-                      ) : (
-                        <p className="text-sm break-words whitespace-pre-wrap leading-relaxed pr-5">
-                          {msg.text}
+                      ) : null}
+
+                      <div
+                        className={`rounded-xl px-3 py-2 ${
+                          isMe
+                            ? "rounded-br-sm bg-[#FF5C00] text-white"
+                            : "rounded-bl-sm border border-[#E7E0D6] bg-white text-[#28231C]"
+                        }`}
+                      >
+                        <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
+                          {message.body}
                         </p>
-                      )}
-
-                      <div className="flex items-center justify-end gap-1 mt-0.5">
-                        <span
-                          className={`text-[10px] ${isMe ? "text-white/60" : "text-muted-foreground"}`}
-                        >
-                          {msg.timestamp
-                            ? formatMessageTime(msg.timestamp)
-                            : ""}
-                        </span>
-                        {isOptimistic && isMe && (
-                          <span className="text-[9px] text-white/50 italic">
-                            Sending...
+                        <div className="mt-1 flex justify-end">
+                          <span
+                            className={`text-[10px] ${
+                              isMe ? "text-white/70" : "text-[#8A8174]"
+                            }`}
+                          >
+                            {formatMessageTime(message.createdAt)}
                           </span>
-                        )}
-                      </div>
-
-                      {/* Context menu for own messages */}
-                      {isMe && !isEditing && !isOptimistic && (
-                        <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger className="p-1 rounded-full focus:outline-none hover:bg-muted">
-                              <FaEllipsisVertical className="text-[10px] text-white/70" />
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => startEditing(msg)}
-                              >
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleDelete(msg._key)}
-                                className="text-red-500"
-                              >
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </React.Fragment>
-            );
-          })
+                </React.Fragment>
+              );
+            })}
+          </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center py-10">
-            <div className="w-16 h-16 rounded-2xl bg-muted/20 border-2 border-[#FF6B35]/30 flex items-center justify-center mb-4">
+          <div className="flex h-full flex-col items-center justify-center text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#FFD5C1] bg-white">
               <FaComments className="text-2xl text-[#FF6B35]" />
             </div>
-            <p className="font-head font-bold text-sm text-foreground">
-              No messages yet
+            <p className="text-sm font-semibold text-[#181512]">
+              No messages yet in {title}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Start the conversation with your team!
+            <p className="mt-1 text-xs text-[#8A8174]">
+              Start the conversation to bring this channel to life.
             </p>
           </div>
         )}
       </div>
 
-      {/* Input area */}
-      <div className="px-3 py-3 border-t-2 border-border bg-muted/20 flex gap-2 flex-shrink-0">
+      <div className="flex flex-shrink-0 gap-2 border-t border-[#E5E0D8] bg-white px-5 py-4">
         <input
           ref={inputRef}
           type="text"
           value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-          placeholder="Type a message..."
-          className="flex-1 border-2 border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:shadow-brutal transition-all bg-card text-foreground placeholder:text-muted-foreground"
+          onChange={(event) => setNewMessage(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+              event.preventDefault();
+              void handleSend();
+            }
+          }}
+          placeholder={
+            canPost
+              ? `Message #${channelSlug}`
+              : "Only the workspace host can post here"
+          }
+          disabled={!canPost || isSending}
+          className="flex-1 rounded-xl border border-[#DED7CC] bg-[#FCFBF8] px-4 py-3 text-sm text-[#181512] outline-none transition-all placeholder:text-[#9B9287] focus:border-[#FF5C00] disabled:cursor-not-allowed disabled:bg-[#F7F5F0]"
         />
-        <Button
-          onClick={handleSend}
-          disabled={isSending || !newMessage.trim()}
-          className="border-2 border-border bg-[#FF6B35] text-white shadow-brutal hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50 px-3"
+        <button
+          onClick={() => void handleSend()}
+          disabled={!canPost || isSending || !newMessage.trim()}
+          className="flex items-center justify-center rounded-xl bg-[#FF5C00] px-4 text-white transition hover:bg-[#E65400] disabled:cursor-not-allowed disabled:opacity-50"
+          title={canPost ? "Send message" : "Posting is restricted"}
         >
-          <FaPaperPlane className="text-sm" />
-        </Button>
+          {canPost ? <FaPaperPlane className="text-sm" /> : <FaLock className="text-sm" />}
+        </button>
       </div>
     </div>
   );
+}
+
+function RealtimeWorkspaceChat({
+  workspaceId,
+  channelSlug,
+  title,
+  description,
+  canPost = true,
+  pinnedContent,
+}: Pick<
+  WorkspaceChatProps,
+  "workspaceId" | "channelSlug" | "title" | "description" | "canPost" | "pinnedContent"
+>) {
+  return (
+    <SyncedRealtimeWorkspaceChat
+      workspaceId={workspaceId}
+      channelSlug={channelSlug}
+      title={title}
+      description={description}
+      canPost={canPost}
+      pinnedContent={pinnedContent}
+    />
+  );
+}
+
+export function WorkspaceChat(props: WorkspaceChatProps) {
+  if (!props.convexConfigured) {
+    return (
+      <SetupNotice reason="This environment is missing NEXT_PUBLIC_CONVEX_URL, so the Convex chat client never starts." />
+    );
+  }
+
+  if (props.chatPreparing) {
+    return (
+      <div className="flex h-full items-center justify-center bg-[#FCFBF8] px-6 text-center">
+        <div>
+          <p className="text-sm font-semibold text-[#181512]">
+            Preparing realtime workspace chat...
+          </p>
+          <p className="mt-2 text-sm text-[#7A7267]">
+            Syncing your workspace access with Convex.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!props.chatReady) {
+    return (
+      <SetupNotice
+        reason={
+          props.chatUnavailableReason ||
+          "Convex is configured, but your workspace chat access could not be synced."
+        }
+      />
+    );
+  }
+
+  return <RealtimeWorkspaceChat {...props} />;
 }

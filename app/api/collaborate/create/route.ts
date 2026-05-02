@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { client } from '@/lib/sanity/client'
 import { auth } from '@clerk/nextjs/server'
+import { getOrCreateUser } from '@/lib/auth/user'
 
 export async function POST(req: NextRequest) {
     try {
@@ -11,9 +12,9 @@ export async function POST(req: NextRequest) {
 
         const { projectName, description, skillsNeeded, duration, commitment, maxPositions } = await req.json()
 
-        // 1. Get Sanity User ID from Clerk ID
-        const userQuery = `*[_type == "user" && clerkId == "${userId}"][0]._id`
-        const sanityUserId = await client.fetch(userQuery)
+        // 1. Ensure the current Clerk user is linked to a Sanity user
+        const sanityUser = await getOrCreateUser()
+        const sanityUserId = sanityUser?._id
 
         if (!sanityUserId) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 })
