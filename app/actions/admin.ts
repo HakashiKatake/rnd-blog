@@ -134,7 +134,7 @@ export async function createOrUpdateEvent(payload: EventPayload) {
 
         if (payload.id) {
             // Update existing event
-            const patch = client.patch(payload.id).set({
+            const setFields: Record<string, any> = {
                 title: payload.title,
                 description: payload.description || '',
                 requirements: payload.requirements || '',
@@ -143,10 +143,19 @@ export async function createOrUpdateEvent(payload: EventPayload) {
                 location: payload.location || '',
                 startTime: new Date(payload.startTime).toISOString(),
                 endTime: payload.endTime ? new Date(payload.endTime).toISOString() : undefined,
-                registrationLink: payload.registrationLink || undefined,
                 status: payload.status,
                 ...(imageAsset ? { image: imageAsset } : {}),
-            });
+            };
+
+            let patch = client.patch(payload.id).set(setFields);
+
+            // If registrationLink has a value, set it; otherwise unset it from the document
+            if (payload.registrationLink && payload.registrationLink.trim()) {
+                patch = patch.set({ registrationLink: payload.registrationLink.trim() });
+            } else {
+                patch = patch.unset(['registrationLink']);
+            }
+
             await patch.commit();
         } else {
             // Create new event
