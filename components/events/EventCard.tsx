@@ -147,7 +147,7 @@ export function EventCard({ event, hasRegistered = false }: EventProps) {
                             )}
 
                             <div className="mt-auto pt-6 border-t-2 border-border bg-background">
-                                {event.registrationLink ? (
+                                {event.registrationLink && event.registrationLink.trim() ? (
                                     <Link href={event.registrationLink} target="_blank" className="block w-full">
                                         <Button className="w-full text-lg py-7 bg-primary text-primary-foreground border-2 border-foreground shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brutal-sm transition-all font-bold">
                                             Register Now
@@ -200,7 +200,7 @@ export function EventCard({ event, hasRegistered = false }: EventProps) {
 
                 <div className="mt-auto flex gap-3 flex-wrap">
                     <div className="flex-1">
-                        {event.registrationLink ? (
+                        {event.registrationLink && event.registrationLink.trim() ? (
                             <Link href={event.registrationLink} target="_blank" className="block w-full">
                                 <Button className="w-full bg-primary text-primary-foreground border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-all font-bold">
                                     Register Now (External)
